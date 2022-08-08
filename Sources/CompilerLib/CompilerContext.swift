@@ -117,17 +117,34 @@ public class CompilerContext : CustomStringConvertible {
     // TODO: temporaries
   }
 
-  public func pushSelector(_ selector: String) {
+  public func saveSelectorFor(_ node: MessageNode) {
+    let selector = node.selector
+    if let _ = specials[selector] {
+      return
+    }
+    if let _ = literals.firstIndex(of: selector) {
+      return
+    }
+    literals.append(selector)
+  }
+
+  public func pushSelectorFor(_ node: MessageNode) {
+    let selector = node.selector
     if let bytecode = specials[selector] {
       push(bytecode)
       return
     }
     if let index = literals.firstIndex(of: selector) {
-      pushLiteral(index)
-      return
+      if node.numArguments <= 2 && index < 16 {
+        let bytecodeNumber = Bytecode.sendNoArgLiteral0.rawValue + (node.numArguments * 16) + index
+        guard let bytecode = Bytecode(rawValue: bytecodeNumber) else {
+          fatalError("Bytecodes 208-255 (send literal selector) not set up correctly!")
+        }
+        push(bytecode)
+        return
+      }
+      // TODO: handle other sends
     }
-    literals.append(selector)
-    pushLiteral(literals.count - 1)
   }
 
   public func popVariable(_ variable: String) {

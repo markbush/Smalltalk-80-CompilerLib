@@ -82,11 +82,11 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
   public func visitMessageNode(_ node: MessageNode) {
     node.receiver.accept(self)
+    context.saveSelectorFor(node)
     for argument in node.arguments {
       argument.accept(self)
     }
-    // TODO: handle selector
-    context.pushSelector(node.selector)
+    context.pushSelectorFor(node)
   }
 
   public func visitVariableNode(_ node: VariableNode) {
