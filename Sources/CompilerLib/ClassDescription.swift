@@ -6,4 +6,8 @@ public class ClassDescription {
     self.name = name
     self.instanceVariables = instVars
   }
+
+  public func indexOfInstanceVariable(_ variable: String) -> Int? {
+    return instanceVariables.firstIndex(of: variable)
+  }
 }

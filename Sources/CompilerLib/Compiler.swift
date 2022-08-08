@@ -1,43 +1,24 @@
 import Foundation
 
 public class Compiler : NodeVisitor, CustomStringConvertible {
-  let classDescription: ClassDescription
-  var bytecodes: [Bytecode] = []
-  var arguments: [String] = []
-  var temporaries: [String] = []
-  var selector = ""
+  let context: CompilerContext
   var source = ""
+  var hasReturned = false
 
   public var description: String {
-    var parts = [classDescription.name]
-    parts.append("Method: \(selector)")
-    parts.append("Instance variables: \(classDescription.instanceVariables)")
-    parts.append("Arguments: \(arguments)")
-    parts.append("Temporaries: \(temporaries)")
-    parts.append("---------------------------")
-    parts.append(source)
-    parts.append("===========================")
-    parts.append("Bytecodes:")
-    for bytecode in bytecodes {
-      parts.append("\(bytecode.rawValue) \(bytecode)")
-    }
-    parts.append("")
+    let parts = [source,
+                 "---------------------------",
+                 "\(context)",
+                 ""
+               ]
     return parts.joined(separator: "\n")
   }
 
   public init(forClass classDescription: ClassDescription) {
-    self.classDescription = classDescription
+    self.context = CompilerContext(forClass: classDescription)
   }
   public init() {
-    self.classDescription = ClassDescription("Test", instanceVariables: [])
-  }
-
-  func reset() {
-    bytecodes = []
-    arguments = []
-    temporaries = []
-    selector = ""
-    source = ""
+    self.context = CompilerContext(forClass: ClassDescription("Test", instanceVariables: []))
   }
 
   public func compileMethod(_ method: String) -> String {
@@ -48,7 +29,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       let ast = try parser.parseMethod()
       output.append(source)
       output.append("\(ast)")
-      reset()
+      context.reset()
       ast.accept(self)
     } catch ParserError.syntaxError(let reason, let position) {
       output.append(reason)
@@ -71,20 +52,23 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
   }
 
   public func visitMethodNode(_ node: MethodNode) {
-    selector = node.selector
+    context.selector = node.selector
     for variableNode in node.arguments {
-      arguments.append(variableNode.name)
+      context.addArg(variableNode.name)
     }
     if let body = node.body {
       body.accept(self)
+    }
+    if !hasReturned {
+      context.push(.returnSelf)
     }
   }
 
   public func visitStatementListNode(_ node: StatementListNode) {
     for variableNode in node.temporaries {
-      temporaries.append(variableNode.name)
+      context.addTemp(variableNode.name)
     }
-    // Pragmas
+    // TODO: Pragmas
     for statement in node.statements {
       statement.accept(self)
     }
@@ -92,10 +76,56 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
   public func visitReturnNode(_ node: ReturnNode) {
     node.value.accept(self)
-    bytecodes.append(.returnTop)
+    context.push(.returnTop)
+    hasReturned = true
   }
 
   public func visitMessageNode(_ node: MessageNode) {
-    //node.receiver.accept(self)
+    node.receiver.accept(self)
+    for argument in node.arguments {
+      argument.accept(self)
+    }
+    // TODO: handle selector
+    context.pushSelector(node.selector)
+  }
+
+  public func visitVariableNode(_ node: VariableNode) {
+    context.pushVariable(node.name)
+  }
+
+  func isInteger(_ number: String) -> Bool {
+    if number.count == 0 {
+      return false
+    }
+    var rest = number
+    if let first = number.first, first == "-" {
+      rest = String(number.dropFirst())
+    }
+    for c in rest {
+      if !c.isNumber {
+        return false
+      }
+    }
+    return true
+  }
+
+  public func visitLiteralNumberNode(_ node: LiteralNumberNode) {
+    let value = node.value
+    if isInteger(value) {
+      if let number = Int(value), number >= -1 && number <= 2 {
+        guard let bytecode = Bytecode(rawValue: Bytecode.pushZero.rawValue + number) else {
+          fatalError("Bytecodes 116-119 (push -1, 0, 1, 2) not set up correctly!")
+        }
+        context.push(bytecode)
+      }
+    }
+  }
+
+  public func visitAssignNode(_ node: AssignNode) {
+    guard let variableNode = node.variable, let value = node.value else {
+      fatalError("Invalid assign node \(node)")
+    }
+    value.accept(self)
+    context.popVariable(variableNode.name)
   }
 }

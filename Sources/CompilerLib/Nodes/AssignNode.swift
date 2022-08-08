@@ -13,4 +13,7 @@ public class AssignNode : ExpressionNode {
     return "\(parts.joined(separator: " ")))"
   }
 
+  override public func accept(_ visitor: NodeVisitor) {
+    visitor.visitAssignNode(self)
+  }
 }

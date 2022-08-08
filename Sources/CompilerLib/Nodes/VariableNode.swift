@@ -8,4 +8,8 @@ public class VariableNode : ExpressionNode {
   public override var description: String {
     "(VariableNode name: \(name))"
   }
+
+  override public func accept(_ visitor: NodeVisitor) {
+    visitor.visitVariableNode(self)
+  }
 }
