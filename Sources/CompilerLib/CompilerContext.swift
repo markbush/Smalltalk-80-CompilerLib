@@ -3,7 +3,7 @@ public class CompilerContext : CustomStringConvertible {
   var bytecodes: [Bytecode] = []
   var arguments: [String] = []
   var temporaries: [String] = []
-  var literals: [String] = []
+  var literals: [LiteralValue] = []
   public var selector = ""
   let specials: [String:Bytecode] = [
     "+": .sendPlus,
@@ -41,12 +41,19 @@ public class CompilerContext : CustomStringConvertible {
   ]
 
   public var description: String {
+    var literalDescriptions: [String] = []
+    for literal in literals {
+      switch literal {
+      case .constant(let value): literalDescriptions.append(value)
+      case .variable(let variable, let value): literalDescriptions.append("\(variable) -> \(value)")
+      }
+    }
     var parts = [classDescription.name,
                  "Instance variables: \(classDescription.instanceVariables)",
                  "Method: \(selector)",
                  "Arguments: \(arguments)",
                  "Temporaries: \(temporaries)",
-                 "Literals: \(literals)",
+                 "Literals: \(literalDescriptions)",
                  "===========================",
                  "Bytecodes:"
                ]
@@ -81,16 +88,6 @@ public class CompilerContext : CustomStringConvertible {
     bytecodes.append(bytecode)
   }
 
-  func pushLiteral(_ index: Int) {
-    if index < 32 {
-      guard let bytecode = Bytecode(rawValue: Bytecode.pushLiteralConstant0.rawValue + index) else {
-        fatalError("Bytecodes 32-63 (push literal constant) not set up correctly!")
-      }
-      push(bytecode)
-    }
-    // TODO: extended literal push
-  }
-
   public func pushVariable(_ variable: String) {
     // Check for instance variables
     if let index = classDescription.indexOfInstanceVariable(variable) {
@@ -103,7 +100,7 @@ public class CompilerContext : CustomStringConvertible {
       }
       // TODO: handle more than 16 instance variables
     }
-    // TODO: arguments
+    // Check method arguments
     if let index = arguments.firstIndex(of: variable) {
       if index < 16 {
         guard let bytecode = Bytecode(rawValue: Bytecode.pushTemporary0.rawValue + index) else {
@@ -114,7 +111,41 @@ public class CompilerContext : CustomStringConvertible {
       }
       // TODO: handle more than 16 arguments
     }
-    // TODO: temporaries
+    // Check temporaries
+    if let tempIndex = temporaries.firstIndex(of: variable) {
+      // Account for arguments
+      let index = tempIndex + arguments.count
+      if index < 16 {
+        guard let bytecode = Bytecode(rawValue: Bytecode.pushTemporary0.rawValue + index) else {
+          fatalError("Bytecodes 16-31 (push temporary variable) not set up correctly!")
+        }
+        push(bytecode)
+        return
+      }
+      // TODO: handle more than 16 arguments+temporaries
+    }
+    // Check for literal variables
+    var literalIndex: Int? = nil
+    // TODO: lookup global
+    let literal = LiteralValue.variable(variable, variable)
+    if let index = literals.firstIndex(of: literal) {
+      literalIndex = index
+    } else {
+      literals.append(literal)
+      literalIndex = literals.count - 1
+    }
+    guard let variableIndex = literalIndex else {
+      fatalError("Literal index must have been set!")
+    }
+    if variableIndex < 32 {
+      guard let bytecode = Bytecode(rawValue: Bytecode.pushLiteralVariable0.rawValue + variableIndex) else {
+        fatalError("Bytecodes 64-95 (push literal variable) not set up correctly!")
+      }
+      push(bytecode)
+      return
+    }
+    // TODO: handle more than 32 literals
+    // TODO: handle all globals
   }
 
   public func saveSelectorFor(_ node: MessageNode) {
@@ -122,10 +153,11 @@ public class CompilerContext : CustomStringConvertible {
     if let _ = specials[selector] {
       return
     }
-    if let _ = literals.firstIndex(of: selector) {
+    let literal = LiteralValue.constant(selector)
+    if let _ = literals.firstIndex(of: literal) {
       return
     }
-    literals.append(selector)
+    literals.append(literal)
   }
 
   public func pushSelectorFor(_ node: MessageNode) {
@@ -134,7 +166,8 @@ public class CompilerContext : CustomStringConvertible {
       push(bytecode)
       return
     }
-    if let index = literals.firstIndex(of: selector) {
+    let literal = LiteralValue.constant(selector)
+    if let index = literals.firstIndex(of: literal) {
       if node.numArguments <= 2 && index < 16 {
         let bytecodeNumber = Bytecode.sendNoArgLiteral0.rawValue + (node.numArguments * 16) + index
         guard let bytecode = Bytecode(rawValue: bytecodeNumber) else {
@@ -159,6 +192,18 @@ public class CompilerContext : CustomStringConvertible {
       }
       // TODO: handle more than 8 instance variables
     }
-    // TODO: temporaries
+    // Check for temporaries
+    if let tempIndex = temporaries.firstIndex(of: variable) {
+      // Account for arguments
+      let index = tempIndex + arguments.count
+      if index < 8 {
+        guard let bytecode = Bytecode(rawValue: Bytecode.popTemporary0.rawValue + index) else {
+          fatalError("Bytecodes 104-111 (pop temporary variable) not set up correctly!")
+        }
+        push(bytecode)
+        return
+      }
+      // TODO: handle more than 8 arguments+temporaries
+    }
   }
 }

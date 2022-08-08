@@ -81,8 +81,8 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
   }
 
   public func visitMessageNode(_ node: MessageNode) {
-    node.receiver.accept(self)
     context.saveSelectorFor(node)
+    node.receiver.accept(self)
     for argument in node.arguments {
       argument.accept(self)
     }
