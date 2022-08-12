@@ -290,11 +290,16 @@ public class Scanner {
   func scanNumber() -> Token {
     tokenStart = position
     var value = ""
-    if characterType == .binary && currentCharacter! == "-" {
-      value = "-"
-      step()
-    }
+    // currentChar is a digit
     value.append(scanDigitSequence())
+    if characterType == .letter && (currentCharacter! == "r" || currentCharacter! == "R") {
+      value.append("r")
+      step()
+      if currentCharacter == nil || (characterType != .digit && currentCharacter! != "-") {
+        return ValueToken(.error, at: tokenStart, with: "expected digit after number radix")
+      }
+      value.append(scanDigitSequence())
+    }
     if characterType == .period {
       if let nextChar = peek(), classify(nextChar) != .digit {
         return ValueToken(.number, at: tokenStart, with: value)
@@ -323,6 +328,13 @@ public class Scanner {
 
   func scanDigitSequence() -> String {
     var value = ""
+    if let minus = currentCharacter, minus == "-" {
+      value = "-"
+      step()
+    }
+    if currentCharacter == nil || characterType != .digit {
+      return value
+    }
     value.append(currentCharacter!)
     loop: while step() != nil {
       if characterType == .digit {

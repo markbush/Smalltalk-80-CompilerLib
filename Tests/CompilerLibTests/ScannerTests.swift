@@ -307,6 +307,19 @@ final class ScannerTests: XCTestCase {
     XCTAssertEqual(scanner.position, 4)
   }
 
+  func testSimpleIntegerWithRadix() throws {
+    let scanner = Scanner(on: "8r123 other stuff")
+    let token = scanner.nextToken()
+    XCTAssertEqual(token.type, .number)
+    if let valueToken = token as? ValueToken {
+      XCTAssertEqual(valueToken.value, "8r123")
+    } else {
+      XCTFail("Expected ValueToken!")
+    }
+    XCTAssertEqual(token.position, 0)
+    XCTAssertEqual(scanner.position, 6)
+  }
+
   func testNegativeInteger() throws {
     let scanner = Scanner(on: "-123 other stuff")
     let token = scanner.nextToken()
@@ -318,6 +331,19 @@ final class ScannerTests: XCTestCase {
     }
     XCTAssertEqual(token.position, 0)
     XCTAssertEqual(scanner.position, 5)
+  }
+
+  func testNegativeIntegerWithRadix() throws {
+    let scanner = Scanner(on: "8r-123 other stuff")
+    let token = scanner.nextToken()
+    XCTAssertEqual(token.type, .number)
+    if let valueToken = token as? ValueToken {
+      XCTAssertEqual(valueToken.value, "8r-123")
+    } else {
+      XCTFail("Expected ValueToken!")
+    }
+    XCTAssertEqual(token.position, 0)
+    XCTAssertEqual(scanner.position, 7)
   }
 
   func testSimpleFloat() throws {
