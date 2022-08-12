@@ -8,7 +8,7 @@ This compiler is designed to work on the language specified in The Blue Book (["
 
 ### Omissions
 
-The only missing construct at the moment is a radix prefix for numbers.  This seems to be rarely used so is not likely to be a problem for now.
+The current scanner can recognise all Smalltalk-80 syntax.
 
 ### Extras
 
@@ -18,8 +18,8 @@ This implementation includes support for byte arrays, and dynamic arrays which a
 
 The token scanner is fairly standard.  It recognises identifiers, symbols, characters, strings, comments, block arguments, and numbers and stored the text in the token.  Otherwise, the token just uses the `TokenType` to identify it.  All tokens record the character position from the source that they were found at.
 
-The only complication is negative numbers.  A `-` before a digit could be a negative number or a binary method.  The possible situations are checked to determine which is the appropriate way to tokenise this.
+The only complication is negative numbers.  A `-` before a digit could be a negative number or a binary method.  The possible situations are checked to determine which is the appropriate way to tokenise this.  The method used seems to work so far.
 
 ## Parser
 
-The parser is a hand written back-tracking parser.  It has been tested on the [Pharo](https://github.com/pharo-project/pharo) source (about 8,000 classes with over 90,000 methods) and doesn't generate any errors.
+The parser is a hand written back-tracking parser.  It has been tested on the [Pharo](https://github.com/pharo-project/pharo) source (about 8,000 classes with over 90,000 methods) and doesn't generate any errors.  It has also now been tested on the original Smalltalk-80 sources file without errors.

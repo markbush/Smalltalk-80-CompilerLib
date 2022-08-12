@@ -130,6 +130,11 @@ public class Parser {
         step()
         break
       }
+      if let endToken = currentToken, endToken.type == .period {
+        // Empty statement - ignore
+        step()
+        continue
+      }
       let savedPosition = position
       guard let statementNode = try parseStatement() else {
         resetTo(savedPosition)
@@ -341,6 +346,10 @@ public class Parser {
           // Block has args so this is the end of arg marker
           step()
         }
+        return
+      }
+      if let endBlock = currentToken, endBlock.type == .closeSquareParen {
+        // close of block - no body!
         return
       }
       guard let blockArg = currentToken as? ValueToken, blockArg.type == .blockArg else {

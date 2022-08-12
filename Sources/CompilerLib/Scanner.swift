@@ -38,7 +38,7 @@ public class Scanner {
     switch characterType {
     case .letter: return scanIdentifierOrKeyword()
     case .digit: return scanNumber()
-    case .colon: return scanAssignOrBlockArg()
+    case .colon, .underscore: return scanAssignOrBlockArg()
     case .binary: return scanNegativeOrBinarySelector()
     case .string: return scanString()
     case .hash: return scanSymbolOrArrayLitteral()
@@ -71,9 +71,10 @@ public class Scanner {
   func classify(_ char: Character) -> CharacterType {
     switch char {
     case "+", "/", "\\", "*", "~", "<", ">", "=", "@", "%", "|", "&", "?", "!", ",", "-": return .binary
-    case "a"..."z", "A"..."Z", "_": return .letter
+    case "a"..."z", "A"..."Z": return .letter
     case "0"..."9": return .digit
     case ":": return .colon
+    case "_": return .underscore
     case "'": return .string
     case "\"": return .comment
     case "#": return .hash
@@ -128,8 +129,10 @@ public class Scanner {
         value.append(currentCharacter!)
       case .colon:
         value.append(currentCharacter!)
-        step()
-        return ValueToken(.keyword, at: tokenStart, with: value)
+        if inArray == 0 {
+          step()
+          return ValueToken(.keyword, at: tokenStart, with: value)
+        }
       default:
         return ValueToken(.identifier, at: tokenStart, with: value)
       }
@@ -139,6 +142,10 @@ public class Scanner {
 
   func scanAssignOrBlockArg() -> Token {
     tokenStart = position
+    if characterType == .underscore {
+      step()
+      return Token(.assign, at: tokenStart)
+    }
     if let nextChar = peek() , nextChar == "=" {
       step()
       step()
@@ -293,12 +300,21 @@ public class Scanner {
     // currentChar is a digit
     value.append(scanDigitSequence())
     if characterType == .letter && (currentCharacter! == "r" || currentCharacter! == "R") {
+      guard let radixValue = Int(value) else {
+        return ValueToken(.error, at: tokenStart, with: "invalid radix")
+      }
       value.append("r")
       step()
-      if currentCharacter == nil || (characterType != .digit && currentCharacter! != "-") {
-        return ValueToken(.error, at: tokenStart, with: "expected digit after number radix")
+      if currentCharacter == nil {
+        return ValueToken(.error, at: tokenStart, with: "missing number after radix")
       }
-      value.append(scanDigitSequence())
+      if radixValue <= 10 && characterType != .digit && currentCharacter! != "-" {
+        return ValueToken(.error, at: tokenStart, with: "non-digit after radix")
+      }
+      if characterType != .digit && characterType != .letter && currentCharacter! != "-" {
+        return ValueToken(.error, at: tokenStart, with: "malformed number")
+      }
+      value.append(scanDigitSequence(withRadix: radixValue))
     }
     if characterType == .period {
       if let nextChar = peek(), classify(nextChar) != .digit {
@@ -326,13 +342,19 @@ public class Scanner {
     return ValueToken(.number, at: tokenStart, with: value)
   }
 
-  func scanDigitSequence() -> String {
+  func scanDigitSequence(withRadix radix: Int = 10) -> String {
     var value = ""
     if let minus = currentCharacter, minus == "-" {
       value = "-"
       step()
     }
-    if currentCharacter == nil || characterType != .digit {
+    if currentCharacter == nil {
+      return value
+    }
+    if radix <= 10 && characterType != .digit {
+      return value
+    }
+    if characterType != .letter && characterType != .digit {
       return value
     }
     value.append(currentCharacter!)
@@ -340,7 +362,11 @@ public class Scanner {
       if characterType == .digit {
         value.append(currentCharacter!)
       } else {
-        break loop
+        if radix > 10 && characterType == .letter {
+          value.append(currentCharacter!)
+        } else {
+          break loop
+        }
       }
     }
     return value
@@ -352,7 +378,7 @@ public class Scanner {
     switch characterType {
     case .eof:
       return ValueToken(.error, at: tokenStart, with: "end while reading character constant")
-    case .letter, .digit, .binary, .colon, .string, .comment, .hash, .period, .dollar, .special:
+    case .letter, .digit, .binary, .colon, .string, .comment, .hash, .period, .dollar, .special, .underscore:
       let value = String(currentCharacter!)
       step()
       return ValueToken(.character, at: tokenStart, with: value)
