@@ -34,6 +34,9 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       output.append("\(ast)")
       context.reset()
       ast.accept(self)
+      if (!context.returns()) {
+        context.push(.returnSelf)
+      }
     } catch ParserError.syntaxError(let reason, let position) {
       output.append(reason)
       if let charPos = position {
@@ -118,7 +121,6 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
   }
 
   func handleAnd(_ node: MessageNode) {
-    print(">> No and: implementation yet")
     guard node.arguments.count == 1 else {
       fatalError("Wrong number of arguments for #and: \(node.arguments.count) (expected 1)")
     }
@@ -162,18 +164,22 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     restoreContextFrom(savedContext)
   }
 
+  func handleMessageSendFor(_ node: MessageNode) {
+    context.saveSelectorFor(node)
+    for argument in node.arguments {
+      argument.accept(self)
+    }
+    context.pushSelectorFor(node)
+  }
+
   public func visitMessageNode(_ node: MessageNode) {
     if specialSelectors.contains(node.selector) {
       node.receiver.accept(self)
       handleSpecialSelector(node)
       return
     }
-    context.saveSelectorFor(node)
     node.receiver.accept(self)
-    for argument in node.arguments {
-      argument.accept(self)
-    }
-    context.pushSelectorFor(node)
+    handleMessageSendFor(node)
   }
 
   public func visitVariableNode(_ node: VariableNode) {
@@ -214,5 +220,37 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     }
     value.accept(self)
     context.popVariable(variableNode.name)
+  }
+
+  public func visitLiteralStringNode(_ node: LiteralStringNode) {
+    let value = node.value
+    context.pushLiteralString(value)
+  }
+
+  public func visitLiteralCharacterNode(_ node: LiteralCharacterNode) {
+    let value = node.value
+    context.pushLiteralCharacter(value)
+  }
+
+  public func visitCascadeMessageNode(_ node: CascadeMessageNode) {
+    if node.messages.count == 0 {
+      return
+    }
+    guard let firstMessage = node.messages[0] as? MessageNode else {
+      fatalError("Cascades should only contain messages")
+    }
+    firstMessage.receiver.accept(self)
+    for i in 0 ..< node.messages.count - 1 {
+      context.push(.dupTop)
+      guard let message = node.messages[i] as? MessageNode else {
+        fatalError("Cascades should only contain messages")
+      }
+      handleMessageSendFor(message)
+      context.push(.popStack)
+    }
+    guard let lastMessage = node.messages[node.messages.count-1] as? MessageNode else {
+      fatalError("Cascades should only contain messages")
+    }
+    handleMessageSendFor(lastMessage)
   }
 }

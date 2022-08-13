@@ -8,4 +8,8 @@ public class LiteralStringNode : LiteralNode {
   init(_ value: String) {
     self.value = value
   }
+
+  override public func accept(_ visitor: NodeVisitor) {
+    visitor.visitLiteralStringNode(self)
+  }
 }

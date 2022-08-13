@@ -290,7 +290,13 @@ case sendTwoArgLiteralF = 0xFF
       print("Literal index \(index) out of range for literals \(context.literals) in \(self)")
     } else {
       if case let .stringConstant(constant) = context.literals[index] {
-        return " (\(constant))"
+        return " ('\(constant)')"
+      }
+      if case let .symbolConstant(constant) = context.literals[index] {
+        return " (#\(constant))"
+      }
+      if case let .characterConstant(constant) = context.literals[index] {
+        return " ($\(constant))"
       }
       if case let .classVariable(variable, _) = context.literals[index] {
         return " (\(variable))"

@@ -6,4 +6,7 @@ public protocol NodeVisitor {
   func visitVariableNode(_ node: VariableNode)
   func visitLiteralNumberNode(_ node: LiteralNumberNode)
   func visitAssignNode(_ node: AssignNode)
+  func visitLiteralStringNode(_ node: LiteralStringNode)
+  func visitCascadeMessageNode(_ node: CascadeMessageNode)
+  func visitLiteralCharacterNode(_ node: LiteralCharacterNode)
 }

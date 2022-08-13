@@ -69,7 +69,6 @@ public class CompilerContext : CustomStringConvertible {
       prev2 = prev1
       prev1 = bytecode
     }
-    parts.append("")
     return parts.joined(separator: "\n")
   }
 
@@ -83,6 +82,16 @@ public class CompilerContext : CustomStringConvertible {
     temporaries = []
     literals = []
     selector = ""
+  }
+
+  public func returns() -> Bool {
+    if bytecodes.count == 0 {
+      return false
+    }
+    switch bytecodes[bytecodes.count-1] {
+    case .returnSelf, .returnTrue, .returnFalse, .returnNil, .returnTop: return true
+    default: return false
+    }
   }
 
   public func addArg(_ argument: String) {
@@ -166,11 +175,39 @@ public class CompilerContext : CustomStringConvertible {
     if let _ = specials[selector] {
       return
     }
-    let literal = LiteralValue.stringConstant(selector)
+    let literal = LiteralValue.symbolConstant(selector)
     if let _ = literals.firstIndex(of: literal) {
       return
     }
     literals.append(literal)
+  }
+
+  func pushLiteralConstant(_ literal: LiteralValue) {
+    if literals.firstIndex(of: literal) == nil {
+      literals.append(literal)
+    }
+    guard let index = literals.firstIndex(of: literal) else {
+      fatalError("Literal wasn't stored!")
+    }
+    if index < 32 {
+      let bytecodeNumber = Bytecode.pushLiteralConstant0.rawValue + index
+      guard let bytecode = Bytecode(rawValue: bytecodeNumber) else {
+        fatalError("Bytecodes 32-63 (send literal selector) not set up correctly!")
+      }
+      push(bytecode)
+      return
+    }
+    // TODO: handle more than 32 literals
+  }
+
+  public func pushLiteralString(_ string: String) {
+    let literal = LiteralValue.stringConstant(string)
+    pushLiteralConstant(literal)
+  }
+
+  public func pushLiteralCharacter(_ string: String) {
+    let literal = LiteralValue.characterConstant(string)
+    pushLiteralConstant(literal)
   }
 
   public func pushSelectorFor(_ node: MessageNode) {
@@ -179,7 +216,7 @@ public class CompilerContext : CustomStringConvertible {
       push(bytecode)
       return
     }
-    let literal = LiteralValue.stringConstant(selector)
+    let literal = LiteralValue.symbolConstant(selector)
     if let index = literals.firstIndex(of: literal) {
       if node.numArguments <= 2 && index < 16 {
         let bytecodeNumber = Bytecode.sendNoArgLiteral0.rawValue + (node.numArguments * 16) + index

@@ -10,4 +10,8 @@ public class CascadeMessageNode : ExpressionNode {
     }
     return String(parts.joined(separator: "\n"))+"])"
   }
+
+  override public func accept(_ visitor: NodeVisitor) {
+    visitor.visitCascadeMessageNode(self)
+  }
 }
