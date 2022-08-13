@@ -1,9 +1,12 @@
 import Foundation
 
 public class Compiler : NodeVisitor, CustomStringConvertible {
-  let context: CompilerContext
+  var context: CompilerContext
   var source = ""
-  var hasReturned = false
+  let specialSelectors = [
+    "ifTrue:", "ifFalse:", "ifTrue:ifFalse:", "ifFalse:ifTrue:",
+			"and:", "or:", "whileFalse:", "whileTrue:"
+  ]
 
   public var description: String {
     let parts = [source,
@@ -59,9 +62,6 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     if let body = node.body {
       body.accept(self)
     }
-    if !hasReturned {
-      context.push(.returnSelf)
-    }
   }
 
   public func visitStatementListNode(_ node: StatementListNode) {
@@ -77,10 +77,97 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
   public func visitReturnNode(_ node: ReturnNode) {
     node.value.accept(self)
     context.push(.returnTop)
-    hasReturned = true
+  }
+
+  func saveContext() -> CompilerContext {
+    let savedContext = context
+    context = CompilerContext(forClass: savedContext.classDescription)
+    context.arguments = savedContext.arguments
+    context.temporaries = savedContext.temporaries
+    context.literals = savedContext.literals
+    return savedContext
+  }
+
+  func unwindContextWith(_ bytecode: Bytecode) {
+    context.bytecodes[context.bytecodes.count-2] = bytecode
+    let _ = context.bytecodes.popLast()
+  }
+
+  func restoreContextFrom(_ savedContext: CompilerContext) {
+    if context.bytecodes.count >= 2 && context.bytecodes[context.bytecodes.count-1] == .returnTop {
+      let prevBytecode = context.bytecodes[context.bytecodes.count-2]
+      switch prevBytecode {
+      case .pushSelf: unwindContextWith(.returnSelf)
+      case .pushTrue: unwindContextWith(.returnTrue)
+      case .pushFalse: unwindContextWith(.returnFalse)
+      case .pushNil: unwindContextWith(.returnNil)
+      default: break
+      }
+    }
+    savedContext.bytecodes.append(contentsOf: context.bytecodes)
+    savedContext.literals = context.literals
+    context = savedContext
+  }
+
+  func handleSpecialSelector(_ node: MessageNode) {
+    switch node.selector {
+    case "ifTrue:ifFalse:": handleIfTrueIfFalse(node)
+    case "and:": handleAnd(node)
+    default: fatalError("No implementation for \(node.selector)")
+    }
+  }
+
+  func handleAnd(_ node: MessageNode) {
+    print(">> No and: implementation yet")
+    guard node.arguments.count == 1 else {
+      fatalError("Wrong number of arguments for #and: \(node.arguments.count) (expected 1)")
+    }
+    guard let argNode = node.arguments[0] as? BlockNode else {
+      fatalError("Arguments to #ifTrue:ifFalse: must be blocks")
+    }
+    guard let argBody = argNode.body else {
+      return
+    }
+    let savedContext = saveContext()
+    argBody.accept(self)
+    context.push(.jump1)
+    context.push(.pushFalse)
+    let numArgBytes = context.bytecodes.count
+    savedContext.pushConditionalJumpOn(false, numBytes: numArgBytes)
+    restoreContextFrom(savedContext)
+  }
+
+  func handleIfTrueIfFalse(_ node: MessageNode) {
+    guard node.arguments.count == 2 else {
+      fatalError("Wrong number of arguments for #ifTrue:ifFalse: \(node.arguments.count) (expected 2)")
+    }
+    guard let trueNode = node.arguments[0] as? BlockNode else {
+      fatalError("Arguments to #ifTrue:ifFalse: must be blocks")
+    }
+    guard let falseNode = node.arguments[1] as? BlockNode else {
+      fatalError("Arguments to #ifTrue:ifFalse: must be blocks")
+    }
+    guard let trueBody = trueNode.body else {
+      return
+    }
+    guard let falseBody = falseNode.body else {
+      return
+    }
+
+    let savedContext = saveContext()
+    trueBody.accept(self)
+    let numTrueBytes = context.bytecodes.count
+    savedContext.pushConditionalJumpOn(false, numBytes: numTrueBytes)
+    falseBody.accept(self)
+    restoreContextFrom(savedContext)
   }
 
   public func visitMessageNode(_ node: MessageNode) {
+    if specialSelectors.contains(node.selector) {
+      node.receiver.accept(self)
+      handleSpecialSelector(node)
+      return
+    }
     context.saveSelectorFor(node)
     node.receiver.accept(self)
     for argument in node.arguments {

@@ -124,6 +124,48 @@ case returnTrue = 0x79
 case returnFalse = 0x7A
 case returnNil = 0x7B
 case returnTop = 0x7C
+case pushLong = 0x80
+case storeLong = 0x81
+case popLong = 0x82
+case sendLong = 0x83
+case sendDoubleLong = 0x84
+case sendSuperLong = 0x85
+case sendSuperDoubleLong = 0x86
+case popStack = 0x87
+case dupTop = 0x88
+case pushContext = 0x89
+case jump1 = 0x90
+case jump2 = 0x91
+case jump3 = 0x92
+case jump4 = 0x93
+case jump5 = 0x94
+case jump6 = 0x95
+case jump7 = 0x96
+case jump8 = 0x97
+case jumpOnFalse1 = 0x98
+case jumpOnFalse2 = 0x99
+case jumpOnFalse3 = 0x9A
+case jumpOnFalse4 = 0x9B
+case jumpOnFalse5 = 0x9C
+case jumpOnFalse6 = 0x9D
+case jumpOnFalse7 = 0x9E
+case jumpOnFalse8 = 0x9F
+case jumpLong0 = 0xA0 // 1 extension (0-4)*256 + next
+case jumpLong1 = 0xA1 // 1 extension (1-4)*256 + next
+case jumpLong2 = 0xA2 // 1 extension (2-4)*256 + next
+case jumpLong3 = 0xA3 // 1 extension (3-4)*256 + next
+case jumpLong4 = 0xA4 // 1 extension (4-4)*256 + next
+case jumpLong5 = 0xA5 // 1 extension (5-4)*256 + next
+case jumpLong6 = 0xA6 // 1 extension (6-4)*256 + next
+case jumpLong7 = 0xA7 // 1 extension (7-4)*256 + next
+case jumpLongOnTrue0 = 0xA8 // 1 extension 0*256 + next
+case jumpLongOnTrue1 = 0xA9 // 1 extension 1*256 + next
+case jumpLongOnTrue2 = 0xAA // 1 extension 2*256 + next
+case jumpLongOnTrue3 = 0xAB // 1 extension 3*256 + next
+case jumpLongOnFalse0 = 0xAC // 1 extension 0*256 + next
+case jumpLongOnFalse1 = 0xAD // 1 extension 1*256 + next
+case jumpLongOnFalse2 = 0xAE // 1 extension 2*256 + next
+case jumpLongOnFalse3 = 0xAF // 1 extension 3*256 + next
 case sendPlus = 0xB0
 case sendMinus = 0xB1
 case sendLessThan = 0xB2
@@ -204,4 +246,75 @@ case sendTwoArgLiteralC = 0xFC
 case sendTwoArgLiteralD = 0xFD
 case sendTwoArgLiteralE = 0xFE
 case sendTwoArgLiteralF = 0xFF
+  public func describeFor(_ context: CompilerContext, prev1: Bytecode? = nil, prev2: Bytecode? = nil) -> String {
+    var result = "\(String(format:"%02X", rawValue))  \(String(format:"%3d", rawValue))"
+    if prev2 == .sendDoubleLong || prev2 == .sendSuperDoubleLong {
+      return result
+    }
+    switch prev1 {
+    case .pushLong, .storeLong, .popLong, .sendLong, .sendSuperLong: return result
+    default: break
+    }
+    if prev1 != nil && prev1!.rawValue >= Bytecode.jumpLong0.rawValue && prev1!.rawValue <= Bytecode.jumpLongOnFalse3.rawValue {
+      return result
+    }
+    result.append(" \(self)")
+    switch rawValue {
+    case Bytecode.pushInstVar0.rawValue ... Bytecode.pushInstVarF.rawValue:
+      let index = rawValue
+      result.append(instVarIn(context, at: index))
+    case Bytecode.popInstanceVar0.rawValue ... Bytecode.popInstanceVar7.rawValue:
+      let index = rawValue - Bytecode.popInstanceVar0.rawValue
+      result.append(instVarIn(context, at: index))
+    case Bytecode.pushTemporary0.rawValue ... Bytecode.pushTemporaryF.rawValue:
+      let index = rawValue - Bytecode.pushTemporary0.rawValue
+      result.append(tempIn(context, at: index))
+    case Bytecode.popTemporary0.rawValue ... Bytecode.popTemporary7.rawValue:
+      let index = rawValue - Bytecode.popTemporary0.rawValue
+      result.append(tempIn(context, at: index))
+    case Bytecode.pushLiteralConstant0.rawValue ... Bytecode.pushLiteralConstant1F.rawValue:
+      let index = rawValue - Bytecode.pushLiteralConstant0.rawValue
+      result.append(literalStringIn(context, at: index))
+    case Bytecode.pushLiteralVariable0.rawValue ... Bytecode.pushLiteralVariable1F.rawValue:
+      let index = rawValue - Bytecode.pushLiteralVariable0.rawValue
+      result.append(literalStringIn(context, at: index))
+    case Bytecode.sendNoArgLiteral0.rawValue ... Bytecode.sendTwoArgLiteralF.rawValue:
+      let index = (rawValue - Bytecode.sendNoArgLiteral0.rawValue) % 16
+      result.append(literalStringIn(context, at: index))
+    default: break
+    }
+    return result
+  }
+  func literalStringIn(_ context: CompilerContext, at index: Int) -> String {
+    if index >= context.literals.count {
+      print("Literal index \(index) out of range for literals \(context.literals) in \(self)")
+    } else {
+      if case let .stringConstant(constant) = context.literals[index] {
+        return " (\(constant))"
+      }
+      if case let .classVariable(variable, _) = context.literals[index] {
+        return " (\(variable))"
+      }
+    }
+    return ""
+  }
+  func instVarIn(_ context: CompilerContext, at index: Int) -> String {
+    if index >= context.classDescription.instanceVariables.count {
+      print("Inst var index \(index) out of range for inst vars \(context.classDescription.instanceVariables) in \(self)")
+    } else {
+      let constant = context.classDescription.instanceVariables[index]
+      return " (\(constant))"
+    }
+    return ""
+  }
+  func tempIn(_ context: CompilerContext, at index: Int) -> String {
+    let allTemps = context.arguments + context.temporaries
+    if index >= allTemps.count {
+      print("Temps index \(index) out of range for temps \(allTemps) in \(self)")
+    } else {
+      let constant = allTemps[index]
+      return " (\(constant))"
+    }
+    return ""
+  }
 }

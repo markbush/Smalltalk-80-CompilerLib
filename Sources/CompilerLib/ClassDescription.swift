@@ -1,6 +1,10 @@
-public class ClassDescription {
+public class ClassDescription : Equatable {
   let name: String
   let instanceVariables: [String]
+
+  public static func == (lhs: ClassDescription, rhs: ClassDescription) -> Bool {
+    return lhs.name == rhs.name
+  }
 
   public init(_ name: String, instanceVariables instVars: [String]) {
     self.name = name

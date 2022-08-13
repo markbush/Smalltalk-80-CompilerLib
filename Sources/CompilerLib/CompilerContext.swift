@@ -3,8 +3,15 @@ public class CompilerContext : CustomStringConvertible {
   var bytecodes: [Bytecode] = []
   var arguments: [String] = []
   var temporaries: [String] = []
+  // TODO: replace LiteralValue with Object
   var literals: [LiteralValue] = []
   public var selector = ""
+  let specialVars: [String:Bytecode] = [
+    "self": .pushSelf,
+    "true": .pushTrue,
+    "false": .pushFalse,
+    "nil": .pushNil
+  ]
   let specials: [String:Bytecode] = [
     "+": .sendPlus,
     "-": .sendMinus,
@@ -43,10 +50,7 @@ public class CompilerContext : CustomStringConvertible {
   public var description: String {
     var literalDescriptions: [String] = []
     for literal in literals {
-      switch literal {
-      case .constant(let value): literalDescriptions.append(value)
-      case .variable(let variable, let value): literalDescriptions.append("\(variable) -> \(value)")
-      }
+      literalDescriptions.append(String(describing: literal))
     }
     var parts = [classDescription.name,
                  "Instance variables: \(classDescription.instanceVariables)",
@@ -57,8 +61,13 @@ public class CompilerContext : CustomStringConvertible {
                  "===========================",
                  "Bytecodes:"
                ]
+    var prev1: Bytecode? = nil
+    var prev2: Bytecode? = nil
     for bytecode in bytecodes {
-      parts.append("\(bytecode.rawValue) \(bytecode)")
+      let bytecodeInfo = bytecode.describeFor(self, prev1: prev1, prev2: prev2)
+      parts.append(bytecodeInfo)
+      prev2 = prev1
+      prev1 = bytecode
     }
     parts.append("")
     return parts.joined(separator: "\n")
@@ -89,6 +98,10 @@ public class CompilerContext : CustomStringConvertible {
   }
 
   public func pushVariable(_ variable: String) {
+    if let bytecode = specialVars[variable] {
+      push(bytecode)
+      return
+    }
     // Check for instance variables
     if let index = classDescription.indexOfInstanceVariable(variable) {
       if index < 16 {
@@ -127,7 +140,7 @@ public class CompilerContext : CustomStringConvertible {
     // Check for literal variables
     var literalIndex: Int? = nil
     // TODO: lookup global
-    let literal = LiteralValue.variable(variable, variable)
+    let literal = LiteralValue.classVariable(variable, classDescription)
     if let index = literals.firstIndex(of: literal) {
       literalIndex = index
     } else {
@@ -153,7 +166,7 @@ public class CompilerContext : CustomStringConvertible {
     if let _ = specials[selector] {
       return
     }
-    let literal = LiteralValue.constant(selector)
+    let literal = LiteralValue.stringConstant(selector)
     if let _ = literals.firstIndex(of: literal) {
       return
     }
@@ -166,7 +179,7 @@ public class CompilerContext : CustomStringConvertible {
       push(bytecode)
       return
     }
-    let literal = LiteralValue.constant(selector)
+    let literal = LiteralValue.stringConstant(selector)
     if let index = literals.firstIndex(of: literal) {
       if node.numArguments <= 2 && index < 16 {
         let bytecodeNumber = Bytecode.sendNoArgLiteral0.rawValue + (node.numArguments * 16) + index
@@ -204,6 +217,32 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 8 arguments+temporaries
+    }
+  }
+
+  public func pushConditionalJumpOn(_ isTrueCondition: Bool, numBytes: Int) {
+    if numBytes > 8 || isTrueCondition {
+      let jumpBlock = numBytes / 256
+      let offset = numBytes % 256
+      if jumpBlock > 3 {
+        fatalError("Block too long!")
+      }
+      let baseValue = isTrueCondition ? Bytecode.jumpLongOnTrue0 : Bytecode.jumpLongOnFalse0
+      let rawValue = baseValue.rawValue + jumpBlock
+      guard let bytecode = Bytecode(rawValue: rawValue) else {
+        fatalError("Bytecodes 168-175 (jump long on false) not set up correctly!")
+      }
+      push(bytecode)
+      guard let offsetBytecode = Bytecode(rawValue: offset) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(offset))!")
+      }
+      push(offsetBytecode)
+    } else {
+      let rawValue = Bytecode.jumpOnFalse1.rawValue + numBytes - 2
+      guard let bytecode = Bytecode(rawValue: rawValue) else {
+        fatalError("Bytecodes 152-159 (jump on false) not set up correctly!")
+      }
+      push(bytecode)
     }
   }
 }
