@@ -55,6 +55,7 @@ public class Parser {
     let methodNode = try parseMethodSignature()
     storeCommentsTo(methodNode)
     let statementListNode = try parseBody()
+    statementListNode.parent = methodNode
     methodNode.body = statementListNode
     return methodNode
   }
@@ -141,6 +142,7 @@ public class Parser {
         throw parserError(expecting: "statement")
       }
       statementListNode.statements.append(statementNode)
+      statementNode.parent = statementListNode
       if position >= tokens.count {
         break
       }
@@ -187,6 +189,7 @@ public class Parser {
       }
       if let variableNode = parseIdentifier() {
         node.temporaries.append(variableNode)
+        variableNode.parent = node
       } else {
         throw parserError(expecting: "identifier")
       }
@@ -208,6 +211,7 @@ public class Parser {
         let selector = String(keywords.joined())
         let pragma = PragmaNode(selector, withArgs: arguments)
         node.pragmas.append(pragma)
+        pragma.parent = node
         return
       default:
         arguments.append(token.value) // FIXME - should scan for expression
@@ -271,6 +275,7 @@ public class Parser {
         throw parserError(expecting: "expression")
       }
       cascadeMessage.messages.append(messageExpression)
+      messageExpression.parent = cascadeMessage
       guard let cascadeToken = currentToken, cascadeToken.type == .semiColon else {
         return
       }
@@ -280,7 +285,9 @@ public class Parser {
 
   func parseReturn() throws -> ReturnNode {
     let expressionNode = try parseExpression()
-    return ReturnNode(expressionNode)
+    let returnNode = ReturnNode(expressionNode)
+    expressionNode.parent = returnNode
+    return returnNode
   }
 
   func parseAssign() throws -> AssignNode {
@@ -289,12 +296,14 @@ public class Parser {
     }
     let node = AssignNode()
     node.variable = variableNode
+    variableNode.parent = node
     guard let assignToken = currentToken, assignToken.type == .assign else {
       throw parserError(expecting: "':='")
     }
     step()
     let statementNode = try parseExpression()
     node.value = statementNode
+    statementNode.parent = node
     return node
   }
 
@@ -331,6 +340,7 @@ public class Parser {
     try parseBlockArgsInto(blockNode)
     let statements = try parseBody()
     blockNode.body = statements
+    statements.parent = blockNode
     return blockNode
   }
 
@@ -355,7 +365,9 @@ public class Parser {
       guard let blockArg = currentToken as? ValueToken, blockArg.type == .blockArg else {
         throw parserError(expecting: "block argument")
       }
-      node.arguments.append(VariableNode(blockArg.value))
+      let variableNode = VariableNode(blockArg.value)
+      node.arguments.append(variableNode)
+      variableNode.parent = node
       step()
     }
   }
@@ -459,10 +471,13 @@ public class Parser {
       }
       if let literalNode = try parseLiteral() {
         node.values.append(literalNode)
+        literalNode.parent = node
         continue
       }
       if let variableNode = parseIdentifier() {
-        node.values.append(LiteralSymbolNode("#"+variableNode.name))
+        let symbolNode = LiteralSymbolNode("#"+variableNode.name)
+        node.values.append(symbolNode)
+        symbolNode.parent = node
         continue
       }
       if let token = currentToken, token.type == .openParen {
@@ -470,6 +485,7 @@ public class Parser {
         let savedPosition = position
         if let arrayNode = try parseArray() {
           node.values.append(arrayNode)
+          arrayNode.parent = node
           continue
         }
         resetTo(savedPosition)
@@ -497,6 +513,7 @@ public class Parser {
         throw parserError(expecting: "statement")
       }
       dynamicArrayNode.values.append(statementNode)
+      statementNode.parent = dynamicArrayNode
       if position >= tokens.count {
         break
       }
@@ -528,7 +545,9 @@ public class Parser {
         break
       }
       if let integerNode = currentToken as? ValueToken, integerNode.type == .number && isInteger(integerNode.value) {
-        node.values.append(LiteralNumberNode(integerNode.value))
+        let numberNode = LiteralNumberNode(integerNode.value)
+        node.values.append(numberNode)
+        numberNode.parent = node
         step()
         continue
       }
@@ -579,6 +598,7 @@ public class Parser {
     }
     let selector = token.value
     let messageNode = MessageNode(receiver: receiver, selector: selector)
+    receiver.parent = messageNode
     step()
     let savedPosition = position
     if let nextUnary = parseUnaryMessage(receiver: messageNode) {
@@ -601,14 +621,17 @@ public class Parser {
     }
     let selector = token.value
     let messageNode = MessageNode(receiver: receiver, selector: selector)
+    receiver.parent = messageNode
     step()
     // Arg must start with primary
     let primary = try parsePrimary()
     let savedPosition = position
     if let argument = parseUnaryMessage(receiver: primary) {
+      argument.parent = messageNode
       messageNode.arguments = [argument]
     } else {
       resetTo(savedPosition)
+      primary.parent = messageNode
       messageNode.arguments = [primary]
     }
     let binaryPosition = position
@@ -678,7 +701,9 @@ public class Parser {
       throw parserError(expecting: "keyword")
     }
     let keywordNode = MessageNode(receiver: receiver, selector: selector)
+    receiver.parent = keywordNode
     keywordNode.arguments = arguments
+    arguments.forEach { arg in arg.parent = keywordNode }
     return keywordNode
   }
 

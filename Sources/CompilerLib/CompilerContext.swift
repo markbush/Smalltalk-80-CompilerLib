@@ -257,6 +257,36 @@ public class CompilerContext : CustomStringConvertible {
     }
   }
 
+  public func storeVariable(_ variable: String) {
+    // Check for instance variables
+    if let index = classDescription.indexOfInstanceVariable(variable) {
+      if index < 64 {
+        guard let bytecode = Bytecode(rawValue: index) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(index))!")
+        }
+        push(.storeLong)
+        push(bytecode)
+        return
+      }
+      // TODO: handle more than 64 instance variables
+    }
+    // Check for temporaries
+    if let tempIndex = temporaries.firstIndex(of: variable) {
+      // Account for arguments
+      let index = tempIndex + arguments.count
+      if index < 64 {
+        let storeCode = 0b01000000 | index
+        guard let bytecode = Bytecode(rawValue: storeCode) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(index))!")
+        }
+        push(.storeLong)
+        push(bytecode)
+        return
+      }
+      // TODO: handle more than 64 arguments+temporaries
+    }
+  }
+
   public func pushConditionalJumpOn(_ isTrueCondition: Bool, numBytes: Int) {
     if numBytes > 8 || isTrueCondition {
       let jumpBlock = numBytes / 256

@@ -74,6 +74,10 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     // TODO: Pragmas
     for statement in node.statements {
       statement.accept(self)
+      switch statement {
+      case is CascadeMessageNode: context.push(.popStack)
+      default: break
+      }
     }
   }
 
@@ -219,7 +223,11 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       fatalError("Invalid assign node \(node)")
     }
     value.accept(self)
-    context.popVariable(variableNode.name)
+    if node.parentIsAssign {
+      context.storeVariable(variableNode.name)
+    } else {
+      context.popVariable(variableNode.name)
+    }
   }
 
   public func visitLiteralStringNode(_ node: LiteralStringNode) {

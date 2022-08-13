@@ -12,7 +12,7 @@ public class PragmaNode : Node {
     return "("+String(parts.joined(separator: "\n"))+")"
   }
 
-  public convenience init(_ selector: String) {
+  public convenience init(selector: String) {
     self.init(selector, withArgs: [])
   }
 
