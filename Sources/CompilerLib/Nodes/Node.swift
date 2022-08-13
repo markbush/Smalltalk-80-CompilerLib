@@ -6,9 +6,9 @@ public class Node : CustomStringConvertible, VisitableNode {
     "(Node)"
   }
 
-  public var parentIsAssign: Bool {
+  public var parentIsBody: Bool {
     switch parent {
-    case is AssignNode: return true
+    case is StatementListNode: return true
     default: return false
     }
   }

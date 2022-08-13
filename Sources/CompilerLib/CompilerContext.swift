@@ -121,6 +121,7 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 16 instance variables
+      fatalError("Cannot handle more than 16 instance variables for push")
     }
     // Check method arguments
     if let index = arguments.firstIndex(of: variable) {
@@ -132,6 +133,7 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 16 arguments
+      fatalError("Cannot handle more than 16 arguments")
     }
     // Check temporaries
     if let tempIndex = temporaries.firstIndex(of: variable) {
@@ -145,6 +147,7 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 16 arguments+temporaries
+      fatalError("Cannot handle more than 16 arguments + temporaries")
     }
     // Check for literal variables
     var literalIndex: Int? = nil
@@ -168,6 +171,7 @@ public class CompilerContext : CustomStringConvertible {
     }
     // TODO: handle more than 32 literals
     // TODO: handle all globals
+    fatalError("Cannot handle globals")
   }
 
   public func saveSelectorFor(_ node: MessageNode) {
@@ -198,6 +202,12 @@ public class CompilerContext : CustomStringConvertible {
       return
     }
     // TODO: handle more than 32 literals
+    fatalError("Cannot handle more than 32 literals")
+  }
+
+  public func pushSmallInteger(_ number: Int) {
+    let literal = LiteralValue.intConstant(number)
+    pushLiteralConstant(literal)
   }
 
   public func pushLiteralString(_ string: String) {
@@ -227,6 +237,7 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle other sends
+      fatalError("Cannot handle non-literal symbol sends")
     }
   }
 
@@ -241,6 +252,7 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 8 instance variables
+      fatalError("Cannot handle more than 8 instance variables")
     }
     // Check for temporaries
     if let tempIndex = temporaries.firstIndex(of: variable) {
@@ -254,6 +266,7 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 8 arguments+temporaries
+      fatalError("Cannot handle more than 8 arguments + temporaries")
     }
   }
 
@@ -269,6 +282,7 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 64 instance variables
+
     }
     // Check for temporaries
     if let tempIndex = temporaries.firstIndex(of: variable) {
@@ -284,6 +298,7 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 64 arguments+temporaries
+      fatalError("Cannot handle more than 64 instance variables")
     }
   }
 

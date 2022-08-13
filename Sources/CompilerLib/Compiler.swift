@@ -72,11 +72,24 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       context.addTemp(variableNode.name)
     }
     // TODO: Pragmas
-    for statement in node.statements {
+    for i in 0..<node.statements.count {
+      let statement = node.statements[i]
       statement.accept(self)
+      // If the statement has left a value on the stack, it needs to be popped
       switch statement {
-      case is CascadeMessageNode: context.push(.popStack)
-      default: break
+      case is AssignNode: break
+      case is ReturnNode: break
+      default:
+        if node.parent is BlockNode && i == node.statements.count - 1 {
+          // Block returns last statement
+          break
+        }
+        if i == node.statements.count - 1 && context.returns() {
+          // return so don't pop
+          break
+        }
+        // Ignore result of last expression
+        context.push(.popStack)
       }
     }
   }
@@ -214,8 +227,14 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
           fatalError("Bytecodes 116-119 (push -1, 0, 1, 2) not set up correctly!")
         }
         context.push(bytecode)
+        return
+      }
+      if let number = Int(value), number >= -16384 && number <= 16383 {
+        context.pushSmallInteger(number)
+        return
       }
     }
+    fatalError("Cannot handle numbers")
   }
 
   public func visitAssignNode(_ node: AssignNode) {
@@ -223,10 +242,10 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       fatalError("Invalid assign node \(node)")
     }
     value.accept(self)
-    if node.parentIsAssign {
-      context.storeVariable(variableNode.name)
-    } else {
+    if node.parentIsBody {
       context.popVariable(variableNode.name)
+    } else {
+      context.storeVariable(variableNode.name)
     }
   }
 
