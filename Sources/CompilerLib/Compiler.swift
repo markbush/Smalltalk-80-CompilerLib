@@ -24,7 +24,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     self.context = CompilerContext(forClass: ClassDescription("Test", instanceVariables: []))
   }
 
-  public func compileMethod(_ method: String) -> String {
+  @discardableResult public func compileMethod(_ method: String) -> String {
     var output: [String] = []
     source = method.replacingOccurrences(of: "\t", with: "  ")
     let parser = Parser(on: source)
@@ -32,7 +32,6 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       let ast = try parser.parseMethod()
       output.append(source)
       output.append("\(ast)")
-      context.reset()
       ast.accept(self)
       if (!context.returns()) {
         context.push(.returnSelf)
@@ -74,20 +73,16 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     // TODO: Pragmas
     for i in 0..<node.statements.count {
       let statement = node.statements[i]
+      if node.parent is BlockNode && i == node.statements.count - 1 {
+        statement.isLastInBlock = true
+      }
       statement.accept(self)
       // If the statement has left a value on the stack, it needs to be popped
       switch statement {
-      case is AssignNode: break
-      case is ReturnNode: break
+      case is AssignNode, is ReturnNode: break
       default:
-        if node.parent is BlockNode && i == node.statements.count - 1 {
-          // Block returns last statement
-          break
-        }
-        if i == node.statements.count - 1 && context.returns() {
-          // return so don't pop
-          break
-        }
+        if statement.isLastInBlock { break } // Block returns last statement
+        if context.returns() { break } // statement returns so don't pop
         // Ignore result of last expression
         context.push(.popStack)
       }
@@ -131,6 +126,8 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
   func handleSpecialSelector(_ node: MessageNode) {
     switch node.selector {
+    case "ifTrue:": handleIfTrue(node)
+    case "ifFalse:": handleIfFalse(node)
     case "ifTrue:ifFalse:": handleIfTrueIfFalse(node)
     case "and:": handleAnd(node)
     default: fatalError("No implementation for \(node.selector)")
@@ -149,10 +146,62 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     }
     let savedContext = saveContext()
     argBody.accept(self)
+    let numArgBytes = context.bytecodes.count
     context.push(.jump1)
     context.push(.pushFalse)
-    let numArgBytes = context.bytecodes.count
-    savedContext.pushConditionalJumpOn(false, numBytes: numArgBytes)
+    savedContext.pushConditionalJumpOn(false, numBytes: numArgBytes+1)
+    restoreContextFrom(savedContext)
+  }
+
+  func handleIfTrue(_ node: MessageNode) {
+    guard node.arguments.count == 1 else {
+      fatalError("Wrong number of arguments for #ifTrue: \(node.arguments.count) (expected 1)")
+    }
+    guard let trueNode = node.arguments[0] as? BlockNode else {
+      fatalError("Argument to #ifTrue: must be block")
+    }
+    guard let trueBody = trueNode.body else {
+      return
+    }
+
+    let savedContext = saveContext()
+    trueBody.accept(self)
+    var numTrueBytes = context.bytecodes.count
+    switch node.parent {
+    case is AssignNode, is ReturnNode: break
+    default:
+      if node.isLastInBlock { break }
+      if context.returns() { break } // statement returns so no pop
+      // Will have result popped so jump over that on false
+      numTrueBytes += 1
+    }
+    savedContext.pushConditionalJumpOn(false, numBytes: numTrueBytes)
+    restoreContextFrom(savedContext)
+  }
+
+  func handleIfFalse(_ node: MessageNode) {
+    guard node.arguments.count == 1 else {
+      fatalError("Wrong number of arguments for #ifFalse: \(node.arguments.count) (expected 1)")
+    }
+    guard let falseNode = node.arguments[0] as? BlockNode else {
+      fatalError("Argument to #ifFalse: must be block")
+    }
+    guard let falseBody = falseNode.body else {
+      return
+    }
+
+    let savedContext = saveContext()
+    falseBody.accept(self)
+    var numFalseBytes = context.bytecodes.count
+    switch node.parent {
+    case is AssignNode, is ReturnNode: break
+    default:
+      if node.isLastInBlock { break }
+      if context.returns() { break } // statement returns so no pop
+      // Will have result popped so jump over that on false
+      numFalseBytes += 1
+    }
+    savedContext.pushConditionalJumpOn(true, numBytes: numFalseBytes)
     restoreContextFrom(savedContext)
   }
 
@@ -173,12 +222,17 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       return
     }
 
-    let savedContext = saveContext()
+    let origContext = saveContext()
     trueBody.accept(self)
-    let numTrueBytes = context.bytecodes.count
-    savedContext.pushConditionalJumpOn(false, numBytes: numTrueBytes)
+    let trueContext = saveContext()
     falseBody.accept(self)
-    restoreContextFrom(savedContext)
+    if !context.returns() && context.bytecodes.count > 0 {
+      trueContext.pushJump(context.bytecodes.count)
+    }
+    let numTrueBytes = trueContext.bytecodes.count
+    origContext.pushConditionalJumpOn(false, numBytes: numTrueBytes)
+    restoreContextFrom(trueContext)
+    restoreContextFrom(origContext)
   }
 
   func handleMessageSendFor(_ node: MessageNode) {
@@ -242,7 +296,8 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       fatalError("Invalid assign node \(node)")
     }
     value.accept(self)
-    if node.parentIsBody {
+    if node.parentIsBody && !node.isLastInBlock {
+      // don't pop if last statement in block
       context.popVariable(variableNode.name)
     } else {
       context.storeVariable(variableNode.name)

@@ -24,7 +24,7 @@ public class CompilerContext : CustomStringConvertible {
     "*": .sendMultiply,
     "/": .sendDivide,
     "\\\\": .sendMod,
-    "@": .sendAt,
+    "@": .sendPointAt,
     "bitShift:": .sendBitShift,
     "//": .sendDiv,
     "bitAnd:": .sendBitAnd,
@@ -152,7 +152,7 @@ public class CompilerContext : CustomStringConvertible {
     // Check for literal variables
     var literalIndex: Int? = nil
     // TODO: lookup global
-    let literal = LiteralValue.classVariable(variable, classDescription)
+    let literal = LiteralValue.stringVariable(variable, variable)
     if let index = literals.firstIndex(of: literal) {
       literalIndex = index
     } else {
@@ -320,11 +320,23 @@ public class CompilerContext : CustomStringConvertible {
       }
       push(offsetBytecode)
     } else {
-      let rawValue = Bytecode.jumpOnFalse1.rawValue + numBytes - 2
+      let rawValue = Bytecode.jumpOnFalse1.rawValue + numBytes - 1
       guard let bytecode = Bytecode(rawValue: rawValue) else {
         fatalError("Bytecodes 152-159 (jump on false) not set up correctly!")
       }
       push(bytecode)
     }
+  }
+
+  public func pushJump(_ numBytes: Int) {
+    if numBytes <= 8 {
+      let rawValue = Bytecode.jump1.rawValue + numBytes - 1
+      guard let bytecode = Bytecode(rawValue: rawValue) else {
+        fatalError("Bytecodes 174-181 (jump) not set up correctly!")
+      }
+      push(bytecode)
+      return
+    }
+    fatalError("Cannot handle jumps other than 1-8 bytes forward")
   }
 }
