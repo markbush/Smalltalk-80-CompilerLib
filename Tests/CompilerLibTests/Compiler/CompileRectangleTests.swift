@@ -15,13 +15,19 @@ final class CompileRectangleTests: XCTestCase {
   }
   func runningSource(_ source: String, expecting expected: [Bytecode]) throws {
     compiler.compileMethod(source)
-    XCTAssertEqual(compiler.context.bytecodes, expected)
+    let actual = compiler.context.bytecodes
+    XCTAssertEqual(actual.count, expected.count, "Unexpected number of bytecodes")
+    let count = min(actual.count, expected.count)
+    for i in 0..<count {
+      XCTAssertEqual(actual[i], expected[i], "Different bytecodes at position \(i)")
+    }
   }
   func runningSource(_ source: String, expecting expected: [Int]) throws {
     compiler.compileMethod(source)
     let actual = compiler.context.bytecodes.map { bytecode in bytecode.rawValue }
     XCTAssertEqual(actual.count, expected.count, "Unexpected number of bytecodes")
-    for i in 0..<actual.count {
+    let count = min(actual.count, expected.count)
+    for i in 0..<count {
       XCTAssertEqual(actual[i], expected[i], "Different bytecodes at position \(i)")
     }
   }

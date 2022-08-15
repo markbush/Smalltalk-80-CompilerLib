@@ -11,4 +11,8 @@ public class BlockNode : CodeNode {
     }
     return "("+String(parts.joined(separator: "\n"))+")"
   }
+
+  override public func accept(_ visitor: NodeVisitor) {
+    visitor.visitBlockNode(self)
+  }
 }

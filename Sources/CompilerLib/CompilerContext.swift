@@ -8,6 +8,7 @@ public class CompilerContext : CustomStringConvertible {
   public var selector = ""
   let specialVars: [String:Bytecode] = [
     "self": .pushSelf,
+    "super": .pushSelf,
     "true": .pushTrue,
     "false": .pushFalse,
     "nil": .pushNil
@@ -176,7 +177,7 @@ public class CompilerContext : CustomStringConvertible {
 
   public func saveSelectorFor(_ node: MessageNode) {
     let selector = node.selector
-    if let _ = specials[selector] {
+    if let _ = specials[selector] , !node.sendsToSuper {
       return
     }
     let literal = LiteralValue.symbolConstant(selector)
@@ -184,6 +185,13 @@ public class CompilerContext : CustomStringConvertible {
       return
     }
     literals.append(literal)
+  }
+
+  public func saveTempVar(_ variable: String) {
+    if let _ = temporaries.firstIndex(of: variable) {
+      return
+    }
+    temporaries.append(variable)
   }
 
   func pushLiteralConstant(_ literal: LiteralValue) {
@@ -220,7 +228,38 @@ public class CompilerContext : CustomStringConvertible {
     pushLiteralConstant(literal)
   }
 
+  func pushSuperSendFor(_ node: MessageNode) {
+    let selector = node.selector
+    let literal = LiteralValue.symbolConstant(selector)
+    if let index = literals.firstIndex(of: literal) {
+      if node.numArguments < 8 && index < 0b100000 {
+        let arg = (node.numArguments << 5) | index
+        guard let bytecode = Bytecode(rawValue: arg) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(arg))!")
+        }
+        push(.sendSuperLong)
+        push(bytecode)
+        return
+      }
+      guard let bytecode1 = Bytecode(rawValue: node.numArguments) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(node.numArguments))!")
+      }
+      guard let bytecode2 = Bytecode(rawValue: index) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(index))!")
+      }
+      push(.sendSuperDoubleLong)
+      push(bytecode1)
+      push(bytecode2)
+      return
+    }
+    fatalError("Cannot find literal for selector \(selector) in literals \(literals)")
+  }
+
   public func pushSelectorFor(_ node: MessageNode) {
+    if node.sendsToSuper {
+      pushSuperSendFor(node)
+      return
+    }
     let selector = node.selector
     if let bytecode = specials[selector] {
       push(bytecode)
@@ -251,8 +290,11 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
-      // TODO: handle more than 8 instance variables
-      fatalError("Cannot handle more than 8 instance variables")
+      guard let bytecode = Bytecode(rawValue: index) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(index))!")
+      }
+      push(.popLong)
+      push(bytecode)
     }
     // Check for temporaries
     if let tempIndex = temporaries.firstIndex(of: variable) {
@@ -265,8 +307,12 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
-      // TODO: handle more than 8 arguments+temporaries
-      fatalError("Cannot handle more than 8 arguments + temporaries")
+      let extensionCode = index | 0b01000000
+      guard let bytecode = Bytecode(rawValue: extensionCode) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+      }
+      push(.popLong)
+      push(bytecode)
     }
   }
 
@@ -337,6 +383,27 @@ public class CompilerContext : CustomStringConvertible {
       push(bytecode)
       return
     }
-    fatalError("Cannot handle jumps other than 1-8 bytes forward")
+    pushLongJump(numBytes)
+  }
+
+  public func pushLongJump(_ numBytes: Int) {
+    var jump = numBytes / 256
+    var offset = numBytes % 256
+    while offset < 0 {
+      offset += 256
+      jump -= 1
+    }
+    if jump < -4 || jump > 3 {
+      fatalError("Jump is too far (\(numBytes))")
+    }
+    let rawValue = Bytecode.jumpLong4.rawValue + jump
+    guard let bytecode = Bytecode(rawValue: rawValue) else {
+      fatalError("Bytecodes 174-181 (jump) not set up correctly!")
+    }
+    push(bytecode)
+    guard let offsetBytecode = Bytecode(rawValue: offset) else {
+      fatalError("Bytecodes not set up correctly (needed byte \(offset))!")
+    }
+    push(offsetBytecode)
   }
 }

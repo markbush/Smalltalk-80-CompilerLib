@@ -20,7 +20,15 @@ public class MessageNode : ExpressionNode {
     return result
   }
 
-  init(receiver: ExpressionNode, selector: String) {
+  public override var sendsToSuper: Bool {
+    if let superSend = receiver as? VariableNode, superSend.name == "super" {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  public init(receiver: ExpressionNode, selector: String) {
     self.receiver = receiver
     self.selector = selector
   }

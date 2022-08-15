@@ -5,7 +5,7 @@ public class LiteralSymbolNode : LiteralNode {
     "(LiteralSymbolNode value: \(value))"
   }
 
-  init(_ value: String) {
+  public init(_ value: String) {
     self.value = value
   }
 }

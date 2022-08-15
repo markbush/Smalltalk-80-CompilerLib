@@ -5,7 +5,7 @@ public class LiteralNumberNode : LiteralNode {
     "(LiteralNumberNode value: \(value))"
   }
 
-  init(_ value: String) {
+  public init(_ value: String) {
     self.value = value
   }
 

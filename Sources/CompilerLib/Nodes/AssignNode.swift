@@ -13,6 +13,11 @@ public class AssignNode : ExpressionNode {
     return "\(parts.joined(separator: " ")))"
   }
 
+  override public init() {
+    super.init()
+    self.leavesValueOnStack = false
+  }
+
   override public func accept(_ visitor: NodeVisitor) {
     visitor.visitAssignNode(self)
   }

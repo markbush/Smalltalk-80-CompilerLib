@@ -7,6 +7,8 @@ public class ReturnNode : StatementNode {
 
   public init(_ expression: ExpressionNode) {
     self.value = expression
+    super.init()
+    self.leavesValueOnStack = false
   }
 
   override public func accept(_ visitor: NodeVisitor) {

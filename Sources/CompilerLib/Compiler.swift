@@ -73,17 +73,13 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     // TODO: Pragmas
     for i in 0..<node.statements.count {
       let statement = node.statements[i]
-      if node.parent is BlockNode && i == node.statements.count - 1 {
+      if node.parent is BlockNode && i == node.statements.count - 1 && !node.inLoop {
         statement.isLastInBlock = true
+        statement.leavesValueOnStack = false
       }
       statement.accept(self)
       // If the statement has left a value on the stack, it needs to be popped
-      switch statement {
-      case is AssignNode, is ReturnNode: break
-      default:
-        if statement.isLastInBlock { break } // Block returns last statement
-        if context.returns() { break } // statement returns so don't pop
-        // Ignore result of last expression
+      if statement.leavesValueOnStack  && !statement.isLastInBlock {
         context.push(.popStack)
       }
     }
@@ -108,7 +104,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     let _ = context.bytecodes.popLast()
   }
 
-  func restoreContextFrom(_ savedContext: CompilerContext) {
+  func restoreContextTo(_ savedContext: CompilerContext) {
     if context.bytecodes.count >= 2 && context.bytecodes[context.bytecodes.count-1] == .returnTop {
       let prevBytecode = context.bytecodes[context.bytecodes.count-2]
       switch prevBytecode {
@@ -121,6 +117,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     }
     savedContext.bytecodes.append(contentsOf: context.bytecodes)
     savedContext.literals = context.literals
+    savedContext.temporaries = context.temporaries
     context = savedContext
   }
 
@@ -130,16 +127,19 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     case "ifFalse:": handleIfFalse(node)
     case "ifTrue:ifFalse:": handleIfTrueIfFalse(node)
     case "and:": handleAnd(node)
+    case "or:": handleOr(node)
+    case "whileTrue:": handleWhileTrue(node)
     default: fatalError("No implementation for \(node.selector)")
     }
   }
 
   func handleAnd(_ node: MessageNode) {
+    node.receiver.accept(self)
     guard node.arguments.count == 1 else {
       fatalError("Wrong number of arguments for #and: \(node.arguments.count) (expected 1)")
     }
     guard let argNode = node.arguments[0] as? BlockNode else {
-      fatalError("Arguments to #ifTrue:ifFalse: must be blocks")
+      fatalError("Argument to #and: must be block")
     }
     guard let argBody = argNode.body else {
       return
@@ -150,62 +150,98 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     context.push(.jump1)
     context.push(.pushFalse)
     savedContext.pushConditionalJumpOn(false, numBytes: numArgBytes+1)
-    restoreContextFrom(savedContext)
+    restoreContextTo(savedContext)
+  }
+
+  func handleOr(_ node: MessageNode) {
+    node.receiver.accept(self)
+    guard node.arguments.count == 1 else {
+      fatalError("Wrong number of arguments for #or: \(node.arguments.count) (expected 1)")
+    }
+    guard let argNode = node.arguments[0] as? BlockNode else {
+      fatalError("Argument to #and: must be block")
+    }
+    guard let argBody = argNode.body else {
+      return
+    }
+    let savedContext = saveContext()
+    argBody.accept(self)
+    let numArgBytes = context.bytecodes.count
+    savedContext.pushConditionalJumpOn(false, numBytes: 2)
+    savedContext.push(.pushTrue)
+    savedContext.pushJump(numArgBytes)
+
+    restoreContextTo(savedContext)
   }
 
   func handleIfTrue(_ node: MessageNode) {
-    guard node.arguments.count == 1 else {
-      fatalError("Wrong number of arguments for #ifTrue: \(node.arguments.count) (expected 1)")
+    if node.isLastInBlock {
+      handleLastInBlockIf(true, forNode: node)
+    } else {
+      handleIf(true, forNode: node)
     }
-    guard let trueNode = node.arguments[0] as? BlockNode else {
-      fatalError("Argument to #ifTrue: must be block")
-    }
-    guard let trueBody = trueNode.body else {
-      return
-    }
-
-    let savedContext = saveContext()
-    trueBody.accept(self)
-    var numTrueBytes = context.bytecodes.count
-    switch node.parent {
-    case is AssignNode, is ReturnNode: break
-    default:
-      if node.isLastInBlock { break }
-      if context.returns() { break } // statement returns so no pop
-      // Will have result popped so jump over that on false
-      numTrueBytes += 1
-    }
-    savedContext.pushConditionalJumpOn(false, numBytes: numTrueBytes)
-    restoreContextFrom(savedContext)
   }
 
   func handleIfFalse(_ node: MessageNode) {
+    if node.isLastInBlock {
+      handleLastInBlockIf(false, forNode: node)
+    } else {
+      handleIf(false, forNode: node)
+    }
+  }
+
+  func handleIf(_ condition: Bool, forNode node: MessageNode) {
+    node.receiver.accept(self)
     guard node.arguments.count == 1 else {
-      fatalError("Wrong number of arguments for #ifFalse: \(node.arguments.count) (expected 1)")
+      fatalError("Wrong number of arguments for #ifXXXX: \(node.arguments.count) (expected 1)")
     }
-    guard let falseNode = node.arguments[0] as? BlockNode else {
-      fatalError("Argument to #ifFalse: must be block")
+    guard let blockNode = node.arguments[0] as? BlockNode else {
+      fatalError("Argument to #ifXXXX: must be block")
     }
-    guard let falseBody = falseNode.body else {
+    guard let blockBody = blockNode.body else {
       return
     }
 
     let savedContext = saveContext()
-    falseBody.accept(self)
-    var numFalseBytes = context.bytecodes.count
+    blockBody.accept(self)
+    node.leavesValueOnStack = !context.returns()
+    var numBytes = context.bytecodes.count
     switch node.parent {
     case is AssignNode, is ReturnNode: break
     default:
       if node.isLastInBlock { break }
       if context.returns() { break } // statement returns so no pop
       // Will have result popped so jump over that on false
-      numFalseBytes += 1
+      numBytes += 1
     }
-    savedContext.pushConditionalJumpOn(true, numBytes: numFalseBytes)
-    restoreContextFrom(savedContext)
+    savedContext.pushConditionalJumpOn(!condition, numBytes: numBytes)
+    restoreContextTo(savedContext)
+  }
+
+  func handleLastInBlockIf(_ condition: Bool, forNode node: MessageNode) {
+    node.receiver.accept(self)
+    guard node.arguments.count == 1 else {
+      fatalError("Wrong number of arguments for #ifXXXX: \(node.arguments.count) (expected 1)")
+    }
+    guard let blockNode = node.arguments[0] as? BlockNode else {
+      fatalError("Argument to #ifXXXX: must be block")
+    }
+    guard let blockBody = blockNode.body else {
+      return
+    }
+
+    let savedContext = saveContext()
+    blockBody.accept(self)
+    node.leavesValueOnStack = !context.returns()
+    let numBytes = context.bytecodes.count
+    savedContext.pushConditionalJumpOn(condition, numBytes: 2)
+    savedContext.push(.pushNil) // Ensure block has a return value
+    savedContext.pushJump(numBytes)
+    restoreContextTo(savedContext)
   }
 
   func handleIfTrueIfFalse(_ node: MessageNode) {
+    node.receiver.accept(self)
     guard node.arguments.count == 2 else {
       fatalError("Wrong number of arguments for #ifTrue:ifFalse: \(node.arguments.count) (expected 2)")
     }
@@ -224,15 +260,51 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
     let origContext = saveContext()
     trueBody.accept(self)
+    let trueLeavesValueOnStack = !context.returns()
     let trueContext = saveContext()
     falseBody.accept(self)
-    if !context.returns() && context.bytecodes.count > 0 {
+    let falseLeavesValueOnStack = !context.returns()
+    node.leavesValueOnStack = trueLeavesValueOnStack || falseLeavesValueOnStack
+    if !trueContext.returns() && context.bytecodes.count > 0 {
       trueContext.pushJump(context.bytecodes.count)
     }
     let numTrueBytes = trueContext.bytecodes.count
     origContext.pushConditionalJumpOn(false, numBytes: numTrueBytes)
-    restoreContextFrom(trueContext)
-    restoreContextFrom(origContext)
+    restoreContextTo(trueContext)
+    restoreContextTo(origContext)
+  }
+
+  func handleWhileTrue(_ node: MessageNode) {
+    node.isLoop = true
+    node.leavesValueOnStack = false
+    guard let receiver = node.receiver as? BlockNode else {
+      fatalError("Receiver of #whileXXXX: must be block")
+    }
+    guard node.arguments.count == 1 else {
+      fatalError("Wrong number of arguments for #whileXXXX: \(node.arguments.count) (expected 1)")
+    }
+    guard let blockNode = node.arguments[0] as? BlockNode else {
+      fatalError("Argument to #whileXXXX: must be block")
+    }
+    guard let blockBody = blockNode.body else {
+      return
+    }
+    blockBody.inLoop = true
+
+    let savedContext = saveContext()
+    receiver.body?.accept(self)
+
+    let savedReceiverContext = saveContext()
+    blockBody.accept(self)
+    let numBodyBytes = context.bytecodes.count
+
+    savedReceiverContext.pushConditionalJumpOn(false, numBytes: numBodyBytes+2)
+    let numReceiverBytes = savedReceiverContext.bytecodes.count
+
+    context.pushLongJump(-(numBodyBytes+numReceiverBytes+2))
+
+    restoreContextTo(savedReceiverContext)
+    restoreContextTo(savedContext)
   }
 
   func handleMessageSendFor(_ node: MessageNode) {
@@ -245,7 +317,6 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
   public func visitMessageNode(_ node: MessageNode) {
     if specialSelectors.contains(node.selector) {
-      node.receiver.accept(self)
       handleSpecialSelector(node)
       return
     }
@@ -334,5 +405,21 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       fatalError("Cascades should only contain messages")
     }
     handleMessageSendFor(lastMessage)
+  }
+
+  public func visitBlockNode(_ node: BlockNode) {
+    context.push(.pushContext)
+    context.push(.pushOne)
+    context.push(.sendBlockCopy)
+    let savedContext = saveContext()
+    for argument in node.arguments {
+      context.saveTempVar(argument.name)
+      context.popVariable(argument.name)
+    }
+    node.body?.accept(self)
+    context.push(.returnTopFromBlock)
+    let numBytes = context.bytecodes.count
+    savedContext.pushLongJump(numBytes)
+    restoreContextTo(savedContext)
   }
 }
