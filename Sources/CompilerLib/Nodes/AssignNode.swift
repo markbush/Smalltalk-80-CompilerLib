@@ -2,7 +2,7 @@ public class AssignNode : ExpressionNode {
   var variable: VariableNode? = nil
   var value: ExpressionNode? = nil
 
-  public override var description: String {
+  override public var description: String {
     var parts = ["(AssignNode"]
     if let variableNode = variable {
       parts.append("variable: \(variableNode)")
@@ -11,11 +11,6 @@ public class AssignNode : ExpressionNode {
       parts.append("\n        value: \(valueNode)")
     }
     return "\(parts.joined(separator: " ")))"
-  }
-
-  override public init() {
-    super.init()
-    self.leavesValueOnStack = false
   }
 
   override public func accept(_ visitor: NodeVisitor) {

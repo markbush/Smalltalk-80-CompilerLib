@@ -1,6 +1,6 @@
 public class LiteralNode : ExpressionNode {
 
-  public override var description: String {
+  override public var description: String {
     "(LiteralNode)"
   }
 }

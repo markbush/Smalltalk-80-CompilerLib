@@ -1,7 +1,7 @@
 public class LiteralArrayNode : LiteralNode {
   var values: [LiteralNode] = []
 
-  public override var description: String {
+  override public var description: String {
     "(LiteralArrayNode value: \(values))"
   }
 }

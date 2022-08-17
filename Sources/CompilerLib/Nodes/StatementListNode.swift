@@ -2,9 +2,8 @@ public class StatementListNode : Node {
   var statements: [StatementNode] = []
   var temporaries: [VariableNode] = []
   var pragmas: [PragmaNode] = []
-  var inLoop = false
 
-  public override var description: String {
+  override public var description: String {
     var parts = ["(StatementListNode:"]
     if temporaries.count > 0 {
       parts.append("  Temporaries: \(temporaries)")

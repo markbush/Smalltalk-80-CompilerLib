@@ -7,7 +7,7 @@ public class MessageNode : ExpressionNode {
     arguments.count
   }
 
-  public override var description: String {
+  override public var description: String {
     var result = "(MessageNode receiver: \(receiver) selector: \(selector)"
     if arguments.count > 0 {
       result.append("\n  arguments: [")
@@ -20,7 +20,7 @@ public class MessageNode : ExpressionNode {
     return result
   }
 
-  public override var sendsToSuper: Bool {
+  override public var sendsToSuper: Bool {
     if let superSend = receiver as? VariableNode, superSend.name == "super" {
       return true
     } else {

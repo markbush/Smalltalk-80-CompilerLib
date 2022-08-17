@@ -1,6 +1,6 @@
 public class BlockNode : CodeNode {
 
-  public override var description: String {
+  override public var description: String {
     var parts = ["BlockNode:",
     "  Arguments: \(arguments)"]
     if comments.count > 0 {

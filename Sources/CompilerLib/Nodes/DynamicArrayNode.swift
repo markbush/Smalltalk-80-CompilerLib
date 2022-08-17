@@ -1,7 +1,7 @@
 public class DynamicArrayNode : ExpressionNode {
   var values: [StatementNode] = []
 
-  public override var description: String {
+  override public var description: String {
     var parts = ["(DynamicArrayNode:",
       "  values: ["
     ]

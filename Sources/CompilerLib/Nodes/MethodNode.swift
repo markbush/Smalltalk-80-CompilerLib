@@ -1,7 +1,7 @@
 public class MethodNode : CodeNode {
   let selector: String
 
-  public override var description: String {
+  override public var description: String {
     var parts = ["MethodNode:",
     "  Selector: #\(selector)",
     "  Arguments: \(arguments)"]

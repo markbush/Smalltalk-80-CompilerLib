@@ -1,7 +1,7 @@
 public class LiteralNumberNode : LiteralNode {
   let value: String
 
-  public override var description: String {
+  override public var description: String {
     "(LiteralNumberNode value: \(value))"
   }
 

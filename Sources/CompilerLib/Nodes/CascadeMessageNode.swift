@@ -1,7 +1,7 @@
 public class CascadeMessageNode : ExpressionNode {
   var messages: [ExpressionNode] = []
 
-  public override var description: String {
+  override public var description: String {
     var parts = ["(CascadeMessageNode:",
       "  Messages: ["
     ]

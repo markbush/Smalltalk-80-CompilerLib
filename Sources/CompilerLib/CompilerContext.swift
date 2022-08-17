@@ -5,7 +5,6 @@ public class CompilerContext : CustomStringConvertible {
   var temporaries: [String] = []
   // TODO: replace LiteralValue with Object
   var literals: [LiteralValue] = []
-  public var selector = ""
   let specialVars: [String:Bytecode] = [
     "self": .pushSelf,
     "super": .pushSelf,
@@ -55,7 +54,6 @@ public class CompilerContext : CustomStringConvertible {
     }
     var parts = [classDescription.name,
                  "Instance variables: \(classDescription.instanceVariables)",
-                 "Method: \(selector)",
                  "Arguments: \(arguments)",
                  "Temporaries: \(temporaries)",
                  "Literals: \(literalDescriptions)",
@@ -82,7 +80,6 @@ public class CompilerContext : CustomStringConvertible {
     arguments = []
     temporaries = []
     literals = []
-    selector = ""
   }
 
   public func returns() -> Bool {

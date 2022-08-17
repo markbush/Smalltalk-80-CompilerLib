@@ -339,6 +339,9 @@ public class Parser {
     let blockNode = BlockNode()
     try parseBlockArgsInto(blockNode)
     let statements = try parseBody()
+    if statements.statements.count > 0 {
+      statements.statements[statements.statements.count-1].isLastInBlock = true
+    }
     blockNode.body = statements
     statements.parent = blockNode
     return blockNode

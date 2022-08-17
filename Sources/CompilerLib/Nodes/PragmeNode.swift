@@ -2,7 +2,7 @@ public class PragmaNode : Node {
   let selector: String
   var arguments: [String] = []
 
-  public override var description: String {
+  override public var description: String {
     var parts = ["PragmaNode:",
     "      Selector: #\(selector)",
     "      Arguments: \(arguments)"]

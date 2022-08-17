@@ -2,7 +2,7 @@ public class CodeNode : ExpressionNode {
   var arguments: [VariableNode] = []
   var body: StatementListNode? = nil
 
-  public override var description: String {
+  override public var description: String {
     var parts = ["CodeNode:",
     "  Arguments: \(arguments)"]
     if comments.count > 0 {

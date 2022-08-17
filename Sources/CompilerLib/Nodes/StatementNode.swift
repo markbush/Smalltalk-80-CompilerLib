@@ -1,6 +1,6 @@
 public class StatementNode : Node {
 
-  public override var description: String {
+  override public var description: String {
     return "(StatementNode)"
   }
 }

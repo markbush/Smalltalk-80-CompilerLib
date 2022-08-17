@@ -1,7 +1,7 @@
 public class ValueToken : Token {
   public let value: String
 
-  public override var description: String {
+  override public var description: String {
     "\(type)(\"\(value)\", at: \(position))"
   }
 

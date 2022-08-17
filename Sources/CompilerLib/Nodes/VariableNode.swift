@@ -5,7 +5,7 @@ public class VariableNode : ExpressionNode {
     self.name = name
   }
 
-  public override var description: String {
+  override public var description: String {
     "(VariableNode name: \(name))"
   }
 
