@@ -23,7 +23,7 @@ final class CompileLinkedListTests: XCTestCase {
     }
   }
 
-  func test1() throws {
+  func testRemoveLast() throws {
     let source = """
 removeLast
 	"Remove the receiver's last element.  If the receiver is empty, cause an error;
@@ -54,7 +54,7 @@ removeLast
     try runningSource(source, expecting: expected)
   }
 
-  func test2() throws {
+  func testSize() throws {
     let source = """
 size
 	"Answer how many elements the receiver contains."
@@ -71,7 +71,7 @@ size
     try runningSource(source, expecting: expected)
   }
 
-  func test3() throws {
+  func testRemoveFirst() throws {
     let source = """
 removeFirst
 	"Remove the first element.  If the receiver is empty, cause an error;
@@ -98,7 +98,7 @@ removeFirst
     try runningSource(source, expecting: expected)
   }
 
-  func test4() throws {
+  func testAdd() throws {
     let source = """
 add: aLink
 	"Add aLink to the end of the receiver's list."
@@ -113,7 +113,7 @@ add: aLink
     try runningSource(source, expecting: expected)
   }
 
-  func test5() throws {
+  func testDo() throws {
     let source = """
 do: aBlock
 	| aLink |
@@ -130,7 +130,7 @@ do: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test6() throws {
+  func testFirst() throws {
     let source = """
 first
 	"Answer the first link;  create an error if the receiver is empty."
@@ -146,7 +146,7 @@ first
     try runningSource(source, expecting: expected)
   }
 
-  func test7() throws {
+  func testAddFirst() throws {
     let source = """
 addFirst: aLink
 	"Add aLink to the beginning of the receiver's list."
@@ -165,7 +165,7 @@ addFirst: aLink
     try runningSource(source, expecting: expected)
   }
 
-  func test8() throws {
+  func testIsEmpty() throws {
     let source = """
 isEmpty
 	^firstLink == nil
@@ -178,7 +178,7 @@ isEmpty
     try runningSource(source, expecting: expected)
   }
 
-  func test9() throws {
+  func testAddLast() throws {
     let source = """
 addLast: aLink
 	"Add aLink to the end of the receiver's list."
@@ -198,7 +198,7 @@ addLast: aLink
     try runningSource(source, expecting: expected)
   }
 
-  func test10() throws {
+  func testRemoveIfAbsent() throws {
     let source = """
 remove: aLink ifAbsent: aBlock
 	"Remove aLink from the receiver.  If it is not there, answer the result of
@@ -228,7 +228,7 @@ remove: aLink ifAbsent: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test11() throws {
+  func testLast() throws {
     let source = """
 last
 	"Answer the last link;  create an error if the receiver is empty."

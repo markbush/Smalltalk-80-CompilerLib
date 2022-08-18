@@ -23,7 +23,7 @@ final class CompileProcessorSchedulerTests: XCTestCase {
     }
   }
 
-  func test1() throws {
+  func testTimingPriority() throws {
     let source = """
 timingPriority
 	"Answer the priority at which the system processes keeping track of
@@ -39,7 +39,7 @@ timingPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test2() throws {
+  func testHighestPriority() throws {
     let source = """
 highestPriority
 	"Answer the number of priority levels currently available for use."
@@ -54,7 +54,7 @@ highestPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test3() throws {
+  func testLowIOPriority() throws {
     let source = """
 lowIOPriority
 	"Answer the priority at which most input/output processes should run.
@@ -71,7 +71,7 @@ lowIOPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test4() throws {
+  func testUserSchedulingPriority() throws {
     let source = """
 userSchedulingPriority
 	"Answer the priority at which the window scheduler should run."
@@ -86,7 +86,7 @@ userSchedulingPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test5() throws {
+  func testHighIOPriority() throws {
     let source = """
 highIOPriority
 	"Answer the priority at which the most time critical input/output
@@ -103,7 +103,7 @@ highIOPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test6() throws {
+  func testSuspendFirstAt() throws {
     let source = """
 suspendFirstAt: aPriority
 	"Suspend the first Process that is waiting to run with priority aPriority."
@@ -121,7 +121,7 @@ suspendFirstAt: aPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test7() throws {
+  func testSignalAtMilliseconds() throws {
     let source = """
 signal: aSemaphore atMilliseconds: milliseconds
 	"Signal the semaphore when the millisecond clock reaches the value of
@@ -144,7 +144,7 @@ signal: aSemaphore atMilliseconds: milliseconds
     try runningSource(source, expecting: expected)
   }
 
-  func test8() throws {
+  func testSetHighestPriority() throws {
     let source = """
 highestPriority: newHighestPriority
 	"Change the number of priority levels currently available for use."
@@ -178,7 +178,7 @@ highestPriority: newHighestPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test9() throws {
+  func testUserBackgroundPriority() throws {
     let source = """
 userBackgroundPriority
 	"Answer the priority at which user background processes should run."
@@ -193,7 +193,7 @@ userBackgroundPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test10() throws {
+  func testSuspendFirstAtIfNone() throws {
     let source = """
 suspendFirstAt: aPriority ifNone: noneBlock
 	"Suspend the first Process that is waiting to run with priority aPriority.
@@ -215,7 +215,7 @@ suspendFirstAt: aPriority ifNone: noneBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test11() throws {
+  func testAnyProcessesAbove() throws {
     let source = """
 anyProcessesAbove: highestPriority
 	"Do any instances of Process exist with higher priorities?"
@@ -234,7 +234,7 @@ anyProcessesAbove: highestPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test12() throws {
+  func testSystemBackgroundPriority() throws {
     let source = """
 systemBackgroundPriority
 	"Answer the priority at which system background processes should
@@ -251,7 +251,7 @@ systemBackgroundPriority
   }
 
 
-  func test14() throws {
+  func testUserInterruptPriority() throws {
     let source = """
 userInterruptPriority
 	"Answer the priority at which user processes desiring immediate
@@ -268,7 +268,7 @@ userInterruptPriority
     try runningSource(source, expecting: expected)
   }
 
-  func test15() throws {
+  func testYield() throws {
     let source = """
 yield
 	"Give other Processes at the current priority a chance to run"
@@ -289,7 +289,7 @@ yield
     try runningSource(source, expecting: expected)
   }
 
-  func test16() throws {
+  func testTerminateActive() throws {
     let source = """
 terminateActive
 	"Terminate the process that is currently running."
@@ -304,7 +304,7 @@ terminateActive
     try runningSource(source, expecting: expected)
   }
 
-  func test17() throws {
+  func testSignalAtTime() throws {
     let source = """
 signal: aSemaphore atTime: timeInterval
 	"Signal aSemaphore when the system's millisecond clock reaches
@@ -336,7 +336,7 @@ signal: aSemaphore atTime: timeInterval
     try runningSource(source, expecting: expected)
   }
 
-  func test18() throws {
+  func testRemoveIfAbsent() throws {
     let source = """
 remove: aProcess ifAbsent: aBlock
 	"Remove aProcess from the list on which it is waiting for the processor. If
@@ -355,7 +355,7 @@ remove: aProcess ifAbsent: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test19() throws {
+  func testActivePriority() throws {
     let source = """
 activePriority
 	"Answer the priority level of the currently running Process."

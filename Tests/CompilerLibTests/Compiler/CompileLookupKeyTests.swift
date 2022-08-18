@@ -24,7 +24,7 @@ final class CompileLookupKeyTests: XCTestCase {
   }
 
 
-  func test2() throws {
+  func testHash() throws {
     let source = """
 hash
 	^key hash
@@ -37,7 +37,7 @@ hash
     try runningSource(source, expecting: expected)
   }
 
-  func test3() throws {
+  func testHashMappedBy() throws {
     let source = """
 hashMappedBy: map
 	"Answer what my hash would be if oops changed according to map"
@@ -51,7 +51,7 @@ hashMappedBy: map
     try runningSource(source, expecting: expected)
   }
 
-  func test4() throws {
+  func testKey() throws {
     let source = """
 key: anObject
 	"Store the argument, anObject, as the lookup key of the receiver."
@@ -65,7 +65,7 @@ key: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test5() throws {
+  func testPrintOn() throws {
     let source = """
 printOn: aStream
 	key printOn: aStream
@@ -78,7 +78,7 @@ printOn: aStream
     try runningSource(source, expecting: expected)
   }
 
-  func test6() throws {
+  func testLessThan() throws {
     let source = """
 < aLookupKey
 	^key < aLookupKey key
@@ -91,7 +91,7 @@ printOn: aStream
     try runningSource(source, expecting: expected)
   }
 
-  func test7() throws {
+  func testEquals() throws {
     let source = """
 = aLookupKey
 	self species = aLookupKey species

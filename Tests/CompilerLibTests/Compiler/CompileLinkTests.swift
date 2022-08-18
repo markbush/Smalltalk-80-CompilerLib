@@ -23,7 +23,7 @@ final class CompileLinkTests: XCTestCase {
     }
   }
 
-  func test1() throws {
+  func testNextLink() throws {
     let source = """
 nextLink: aLink
 	"Store the argument, as the Link to which the receiver refers."

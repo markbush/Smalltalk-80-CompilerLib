@@ -23,7 +23,7 @@ final class CompileDictionaryTests: XCTestCase {
     }
   }
 
-  func test1() throws {
+  func testRemoveIfAbsent() throws {
     let source = """
 remove: anObject ifAbsent: exceptionBlock
 	self shouldNotImplement
@@ -36,7 +36,7 @@ remove: anObject ifAbsent: exceptionBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test2() throws {
+  func testAsSortedCollection() throws {
     let source = """
 asSortedCollection
 	| aSortedCollection |
@@ -54,7 +54,7 @@ asSortedCollection
     try runningSource(source, expecting: expected)
   }
 
-  func test3() throws {
+  func testRemove() throws {
     let source = """
 remove: anObject
 	self shouldNotImplement
@@ -67,7 +67,7 @@ remove: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test4() throws {
+  func testGrow() throws {
     let source = """
 grow
 	| newSelf |
@@ -88,7 +88,7 @@ grow
     try runningSource(source, expecting: expected)
   }
 
-  func test5() throws {
+  func testAdd() throws {
     let source = """
 add: anAssociation
 	| index element |
@@ -110,7 +110,7 @@ add: anAssociation
     try runningSource(source, expecting: expected)
   }
 
-  func test6() throws {
+  func testStoreOn() throws {
     let source = """
 storeOn: aStream
 	| noneYet |
@@ -145,7 +145,7 @@ storeOn: aStream
     try runningSource(source, expecting: expected)
   }
 
-  func test7() throws {
+  func testSelect() throws {
     let source = """
 select: aBlock
 	"Evaluate aBlock with each of my values as the argument.  Collect into a new
@@ -168,7 +168,7 @@ select: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test8() throws {
+  func testPrintOn() throws {
     let source = """
 printOn: aStream
 	| tooMany |
@@ -199,7 +199,7 @@ printOn: aStream
     try runningSource(source, expecting: expected)
   }
 
-  func test9() throws {
+  func testInspect() throws {
     let source = """
 inspect
 	"Create and schedule a DictionaryInspector in which the user can examine the
@@ -218,7 +218,7 @@ inspect
     try runningSource(source, expecting: expected)
   }
 
-  func test10() throws {
+  func testDo() throws {
     let source = """
 do: aBlock
 	super do: [:assoc | aBlock value: assoc value]
@@ -232,7 +232,7 @@ do: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test11() throws {
+  func testFindKeyOrNil() throws {
     // backslash doubled in quoted string!
     let source = """
 findKeyOrNil: key
@@ -262,7 +262,7 @@ findKeyOrNil: key
     try runningSource(source, expecting: expected)
   }
 
-  func test12() throws {
+  func testDeclareFrom() throws {
     let source = """
 declare: key from: aDictionary
 	"Add key to the receiver.  If key already exists, do nothing.  If aDictionary includes
@@ -288,7 +288,7 @@ declare: key from: aDictionary
     try runningSource(source, expecting: expected)
   }
 
-  func test13() throws {
+  func testIncludesAssociation() throws {
     let source = """
 includesAssociation: anAssociation
 	"Answer whether the receiver has an element (association between a key and
@@ -305,7 +305,7 @@ includesAssociation: anAssociation
     try runningSource(source, expecting: expected)
   }
 
-  func test14() throws {
+  func testErrorValueNotFound() throws {
     let source = """
 errorValueNotFound
 	self error: 'value not found'
@@ -319,7 +319,7 @@ errorValueNotFound
     try runningSource(source, expecting: expected)
   }
 
-  func test15() throws {
+  func testRemoveAssociationIfAbsent() throws {
     let source = """
 removeAssociation: anAssociation ifAbsent: anExceptionBlock
 	"Remove the key and value association, anAssociation, from the receiver.  If not found, answer the result of evaluating anExceptionBlock, otherwise answer anAssociation."
@@ -335,7 +335,7 @@ removeAssociation: anAssociation ifAbsent: anExceptionBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test16() throws {
+  func testRemoveAssociation() throws {
     let source = """
 removeAssociation: anAssociation
 	"Remove the key and value association, anAssociation, from the receiver.  Answer anAssociation."
@@ -351,7 +351,7 @@ removeAssociation: anAssociation
     try runningSource(source, expecting: expected)
   }
 
-  func test17() throws {
+  func testFindKeyIfAbsent() throws {
     let source = """
 findKey: key ifAbsent: aBlock
 	| index |
@@ -368,7 +368,7 @@ findKey: key ifAbsent: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test18() throws {
+  func testErrorKeyNotFound() throws {
     let source = """
 errorKeyNotFound
 	self error: 'key not found'
@@ -382,7 +382,7 @@ errorKeyNotFound
     try runningSource(source, expecting: expected)
   }
 
-  func test19() throws {
+  func testKeysDo() throws {
     let source = """
 keysDo: aBlock
 	"Evaluate aBlock for each of the receiver's keys."
@@ -398,7 +398,7 @@ keysDo: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test20() throws {
+  func testAssociationAtIfAbsent() throws {
     let source = """
 associationAt: key ifAbsent: aBlock
 	"Answer the association at key.  If key is not found, answer the
@@ -417,7 +417,7 @@ associationAt: key ifAbsent: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test21() throws {
+  func testKeyAtValueIfAbsent() throws {
     let source = """
 keyAtValue: value ifAbsent: exceptionBlock
 	"Answer the key whose value equals the argument, value.  If there is none,
@@ -436,7 +436,7 @@ keyAtValue: value ifAbsent: exceptionBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test22() throws {
+  func testKeys() throws {
     let source = """
 keys
 	"Answer a set containing the receiver's keys."
@@ -456,7 +456,7 @@ keys
     try runningSource(source, expecting: expected)
   }
 
-  func test23() throws {
+  func testAtIfAbsent() throws {
     let source = """
 at: key ifAbsent: aBlock
 	"Answer the value at key.  If key is not found, answer the
@@ -475,7 +475,7 @@ at: key ifAbsent: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test24() throws {
+  func testRemoveKeyIfAbsent() throws {
     let source = """
 removeKey: key ifAbsent: aBlock
 	"Remove key from the receiver.  If key is not in the receiver,
@@ -501,7 +501,7 @@ removeKey: key ifAbsent: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test25() throws {
+  func testAssociationsDo() throws {
     let source = """
 associationsDo: aBlock
 	"Evaluate aBlock for each of the receiver's key/value associations."
@@ -517,7 +517,7 @@ associationsDo: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test26() throws {
+  func testValues() throws {
     let source = """
 values
 	"Answer a Bag containing the receiver's values."
@@ -536,7 +536,7 @@ values
     try runningSource(source, expecting: expected)
   }
 
-  func test27() throws {
+  func testCollect() throws {
     let source = """
 collect: aBlock
 	"Evaluate aBlock with each of my values as the argument.  Collect the resulting
@@ -556,7 +556,7 @@ collect: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test28() throws {
+  func testAssociations() throws {
     let source = """
 associations
 	"Answer an OrderedCollection containing the receiver's associations in an
@@ -577,7 +577,7 @@ associations
     try runningSource(source, expecting: expected)
   }
 
-  func test29() throws {
+  func testAssociationAt() throws {
     let source = """
 associationAt: key
 	"Answer the association at key.  If key is not found, create an error message."
@@ -593,7 +593,7 @@ associationAt: key
     try runningSource(source, expecting: expected)
   }
 
-  func test30() throws {
+  func testRemoveKey() throws {
     let source = """
 removeKey: key
 	"Remove key from the receiver.  If key is not in the receiver, create an error
@@ -610,7 +610,7 @@ removeKey: key
     try runningSource(source, expecting: expected)
   }
 
-  func test31() throws {
+  func testIncludesKey() throws {
     let source = """
 includesKey: key
 	"Answer whether the receiver has a key equal to the argument, key."
@@ -629,7 +629,7 @@ includesKey: key
     try runningSource(source, expecting: expected)
   }
 
-  func test32() throws {
+  func testKeyAtValue() throws {
     let source = """
 keyAtValue: value
 	"Answer the key whose value equals the argument, value.  If there is none,
@@ -646,7 +646,7 @@ keyAtValue: value
     try runningSource(source, expecting: expected)
   }
 
-  func test33() throws {
+  func testAt() throws {
     let source = """
 at: key
 	"Answer the value at key.  If key is not found, create an error message."
@@ -662,7 +662,7 @@ at: key
     try runningSource(source, expecting: expected)
   }
 
-  func test34() throws {
+  func testIncludes() throws {
     let source = """
 includes: anObject
 	self do: [:each | anObject = each ifTrue: [^true]].
@@ -676,7 +676,7 @@ includes: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test35() throws {
+  func testOccurrencesOf() throws {
     let source = """
 occurrencesOf: anObject
 	"Answer how many of the receiver's elements are equal to anObject."
@@ -694,7 +694,7 @@ occurrencesOf: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test36() throws {
+  func testAtPut() throws {
     let source = """
 at: key put: anObject
 	"Set the value at key to be anObject.  If key is not found, create a new
@@ -720,7 +720,7 @@ at: key put: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test37() throws {
+  func testRehash() throws {
     let source = """
 rehash
 	"Smalltalk rehash."

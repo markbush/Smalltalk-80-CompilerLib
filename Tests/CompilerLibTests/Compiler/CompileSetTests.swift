@@ -23,7 +23,7 @@ final class CompileSetTests: XCTestCase {
     }
   }
 
-  func test1() throws {
+  func testFixCollisionsFrom() throws {
     // backslash doubled in quoted string!
     let source = """
 fixCollisionsFrom: index
@@ -51,7 +51,7 @@ fixCollisionsFrom: index
     try runningSource(source, expecting: expected)
   }
 
-  func test2() throws {
+  func testAtNewIndexPut() throws {
     let source = """
 atNewIndex: index put: anObject
 	self basicAt: index put: anObject.
@@ -67,7 +67,7 @@ atNewIndex: index put: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test3() throws {
+  func testNoCheckAdd() throws {
     let source = """
 noCheckAdd: anObject
 	self basicAt: (self findElementOrNil: anObject)
@@ -83,7 +83,7 @@ noCheckAdd: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test4() throws {
+  func testRehash() throws {
     let source = """
 rehash
 	| newSelf |
@@ -102,7 +102,7 @@ rehash
     try runningSource(source, expecting: expected)
   }
 
-  func test5() throws {
+  func testFindIfAbsent() throws {
     let source = """
 find: anObject ifAbsent: aBlock
 	| index |
@@ -120,7 +120,7 @@ find: anObject ifAbsent: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test6() throws {
+  func testFullCheck() throws {
     let source = """
 fullCheck
 	self basicSize - self size <= (self basicSize // 4) ifTrue: [self grow]
@@ -135,7 +135,7 @@ fullCheck
     try runningSource(source, expecting: expected)
   }
 
-  func test7() throws {
+  func testFindElementOrNil() throws {
     // backslash doubled in quoted string!
     let source = """
 findElementOrNil: anObject
@@ -163,7 +163,7 @@ findElementOrNil: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test8() throws {
+  func testSetTally() throws {
     let source = """
 setTally
 	tally _ 0
@@ -176,7 +176,7 @@ setTally
     try runningSource(source, expecting: expected)
   }
 
-  func test9() throws {
+  func testAdd() throws {
     let source = """
 add: newObject
 	| index |
@@ -196,7 +196,7 @@ add: newObject
   }
 
 
-  func test11() throws {
+  func testCollect() throws {
     let source = """
 collect: aBlock
 	"Evaluate aBlock with each of the receiver's elements as the argument.  Collect the
@@ -223,7 +223,7 @@ collect: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test12() throws {
+  func testSwapWith() throws {
     let source = """
 swap: oneElement with: otherElement
 	| save |
@@ -240,7 +240,7 @@ swap: oneElement with: otherElement
     try runningSource(source, expecting: expected)
   }
 
-  func test13() throws {
+  func testGrow() throws {
     let source = """
 grow
 	"The receiver becomes twice as big--this is not a copy of the receiver, so all shared references survive."
@@ -262,7 +262,7 @@ grow
     try runningSource(source, expecting: expected)
   }
 
-  func test14() throws {
+  func testAt() throws {
     let source = """
 at: index
 	self errorNotKeyed
@@ -275,7 +275,7 @@ at: index
     try runningSource(source, expecting: expected)
   }
 
-  func test15() throws {
+  func testAtPut() throws {
     let source = """
 at: index put: anObject
 	self errorNotKeyed
@@ -288,7 +288,7 @@ at: index put: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test16() throws {
+  func testOccurrencesOf() throws {
     let source = """
 occurrencesOf: anObject
 	(self includes: anObject)
@@ -303,7 +303,7 @@ occurrencesOf: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test17() throws {
+  func testRemoveIfAbsent() throws {
     let source = """
 remove: oldObject ifAbsent: aBlock
 	| index |
@@ -323,7 +323,7 @@ remove: oldObject ifAbsent: aBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test18() throws {
+  func testIncludes() throws {
     let source = """
 includes: anObject
 	^(self basicAt: (self findElementOrNil: anObject)) ~~ nil
@@ -338,7 +338,7 @@ includes: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test19() throws {
+  func testDo() throws {
     let source = """
 do: aBlock
 	tally = 0 ifTrue: [^self].

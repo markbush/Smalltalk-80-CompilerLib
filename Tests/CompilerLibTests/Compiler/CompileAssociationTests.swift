@@ -23,7 +23,7 @@ final class CompileAssociationTests: XCTestCase {
     }
   }
 
-  func test1() throws {
+  func testValue() throws {
     let source = """
 value: anObject
 	"Store the argument, anObject, as the value of the receiver."
@@ -37,7 +37,7 @@ value: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test2() throws {
+  func testKeyValue() throws {
     let source = """
 key: aKey value: anObject
 	"Store the arguments as the variables of the receiver."
@@ -53,7 +53,7 @@ key: aKey value: anObject
     try runningSource(source, expecting: expected)
   }
 
-  func test3() throws {
+  func testPrintOn() throws {
     let source = """
 printOn: aStream
 	super printOn: aStream.

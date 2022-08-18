@@ -23,7 +23,7 @@ final class CompileSemaphoreTests: XCTestCase {
     }
   }
 
-  func test1() throws {
+  func testInitSignals() throws {
     let source = """
 initSignals
 	"Consume any excess signals the receiver may have accumulated."
@@ -38,7 +38,7 @@ initSignals
     try runningSource(source, expecting: expected)
   }
 
-  func test2() throws {
+  func testCritical() throws {
     let source = """
 critical: mutuallyExcludedBlock
 	"Evaluate mutuallyExcludedBlock only if the receiver is not currently in the
@@ -60,7 +60,7 @@ critical: mutuallyExcludedBlock
     try runningSource(source, expecting: expected)
   }
 
-  func test3() throws {
+  func testWait() throws {
     let source = """
 wait
 	"The active Process must receive a signal through the receiver before
@@ -85,7 +85,7 @@ wait
     try runningSource(source, expecting: expected)
   }
 
-  func test4() throws {
+  func testSignal() throws {
     let source = """
 signal
 	"Send a signal through the receiver. If one or more processes have been
@@ -110,7 +110,7 @@ signal
     try runningSource(source, expecting: expected)
   }
 
-  func test5() throws {
+  func testTerminateProcess() throws {
     let source = """
 terminateProcess
 	self isEmpty
