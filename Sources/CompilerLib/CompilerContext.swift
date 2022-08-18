@@ -354,7 +354,7 @@ public class CompilerContext : CustomStringConvertible {
       push(bytecode)
       return
     }
-    fatalError("Cannot handle push of number \(num)!")
+    pushSmallInteger(num)
   }
 
   public func pushConditionalJumpOn(_ isTrueCondition: Bool, numBytes: Int) {
