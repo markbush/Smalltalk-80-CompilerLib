@@ -104,6 +104,18 @@ public class CompilerContext : CustomStringConvertible {
     bytecodes.append(bytecode)
   }
 
+  func indexForLiteralVariable(_ variable: String) -> Int {
+    for index in 0..<literals.count {
+      switch literals[index] {
+      case .stringVariable(let v, _) where v == variable: return index
+      default: break
+      }
+    }
+    let literal = LiteralValue.stringVariable(variable, variable)
+    literals.append(literal)
+    return literals.count - 1
+  }
+
   public func pushVariable(_ variable: String) {
     if let bytecode = specialVars[variable] {
       push(bytecode)
@@ -147,19 +159,7 @@ public class CompilerContext : CustomStringConvertible {
       // TODO: handle more than 16 arguments+temporaries
       fatalError("Cannot handle more than 16 arguments + temporaries")
     }
-    // Check for literal variables
-    var literalIndex: Int? = nil
-    // TODO: lookup global
-    let literal = LiteralValue.stringVariable(variable, variable)
-    if let index = literals.firstIndex(of: literal) {
-      literalIndex = index
-    } else {
-      literals.append(literal)
-      literalIndex = literals.count - 1
-    }
-    guard let variableIndex = literalIndex else {
-      fatalError("Literal index must have been set!")
-    }
+    let variableIndex = indexForLiteralVariable(variable)
     if variableIndex < 32 {
       guard let bytecode = Bytecode(rawValue: Bytecode.pushLiteralVariable0.rawValue + variableIndex) else {
         fatalError("Bytecodes 64-95 (push literal variable) not set up correctly!")
@@ -343,6 +343,18 @@ public class CompilerContext : CustomStringConvertible {
       // TODO: handle more than 64 arguments+temporaries
       fatalError("Cannot handle more than 64 instance variables")
     }
+  }
+
+  public func pushNum(_ num: Int) {
+    if num >= -1 && num <= 2 {
+      let rawValue = Bytecode.pushZero.rawValue + num
+      guard let bytecode = Bytecode(rawValue: rawValue) else {
+        fatalError("Bytecodes 116-119 (-1, 0, 1, 2) not set up correctly!")
+      }
+      push(bytecode)
+      return
+    }
+    fatalError("Cannot handle push of number \(num)!")
   }
 
   public func pushConditionalJumpOn(_ isTrueCondition: Bool, numBytes: Int) {

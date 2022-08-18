@@ -82,6 +82,9 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     node.value.mustHaveValue = true
     node.value.accept(self)
     context.push(.returnTop)
+    if node.parent?.parent is MethodNode && node.value is VariableNode {
+      fixReturn(context)
+    }
   }
 
   func saveContext() -> CompilerContext {
@@ -93,22 +96,26 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     return savedContext
   }
 
-  func unwindContextWith(_ bytecode: Bytecode) {
-    context.bytecodes[context.bytecodes.count-2] = bytecode
-    let _ = context.bytecodes.popLast()
+  func unwindContext(_ theContext: CompilerContext, with bytecode: Bytecode) {
+    theContext.bytecodes[theContext.bytecodes.count-2] = bytecode
+    let _ = theContext.bytecodes.popLast()
   }
 
-  func restoreContextTo(_ savedContext: CompilerContext) {
-    if context.bytecodes.count >= 2 && context.bytecodes[context.bytecodes.count-1] == .returnTop {
-      let prevBytecode = context.bytecodes[context.bytecodes.count-2]
+  func fixReturn(_ theContext: CompilerContext) {
+    if theContext.bytecodes.count >= 2 && theContext.bytecodes[theContext.bytecodes.count-1] == .returnTop {
+      let prevBytecode = theContext.bytecodes[theContext.bytecodes.count-2]
       switch prevBytecode {
-      case .pushSelf: unwindContextWith(.returnSelf)
-      case .pushTrue: unwindContextWith(.returnTrue)
-      case .pushFalse: unwindContextWith(.returnFalse)
-      case .pushNil: unwindContextWith(.returnNil)
+      case .pushSelf: unwindContext(theContext, with: .returnSelf)
+      case .pushTrue: unwindContext(theContext, with: .returnTrue)
+      case .pushFalse: unwindContext(theContext, with: .returnFalse)
+      case .pushNil: unwindContext(theContext, with: .returnNil)
       default: break
       }
     }
+  }
+
+  func restoreContextTo(_ savedContext: CompilerContext) {
+    fixReturn(context)
     savedContext.bytecodes.append(contentsOf: context.bytecodes)
     savedContext.literals = context.literals
     savedContext.temporaries = context.temporaries
@@ -117,12 +124,13 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
   func handleSpecialSelector(_ node: MessageNode) {
     switch node.selector {
-    case "ifTrue:": handleIfTrue(node)
-    case "ifFalse:": handleIfFalse(node)
+    case "ifTrue:": handleIf(true, forNode: node)
+    case "ifFalse:": handleIf(false, forNode: node)
     case "ifTrue:ifFalse:": handleIfTrueIfFalse(node)
     case "and:": handleAnd(node)
     case "or:": handleOr(node)
-    case "whileTrue:": handleWhileTrue(node)
+    case "whileTrue:": handleWhile(true, forNode: node)
+    case "whileFalse:": handleWhile(false, forNode: node)
     default: fatalError("No implementation for \(node.selector)")
     }
   }
@@ -169,16 +177,10 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     savedContext.pushConditionalJumpOn(false, numBytes: 2)
     savedContext.push(.pushTrue)
     savedContext.pushJump(numArgBytes)
-
     restoreContextTo(savedContext)
-  }
-
-  func handleIfTrue(_ node: MessageNode) {
-    handleIf(true, forNode: node)
-  }
-
-  func handleIfFalse(_ node: MessageNode) {
-    handleIf(false, forNode: node)
+    if !node.mustHaveValue {
+      context.push(.popStack)
+    }
   }
 
   func handleIf(_ condition: Bool, forNode node: MessageNode) {
@@ -196,13 +198,15 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     let savedContext = saveContext()
     blockBody.mustHaveValue = node.mustHaveValue
     blockBody.accept(self)
-    let blockReturns = context.returns()
+    fixReturn(context)
     var numBytes = context.bytecodes.count
     if condition {
       if node.mustHaveValue {
-        context.push(.jump1)
+        if !context.returns() {
+          context.push(.jump1)
+          numBytes += 1
+        }
         context.push(.pushNil)
-        numBytes += 1
       }
       savedContext.pushConditionalJumpOn(!condition, numBytes: numBytes)
     } else {
@@ -255,7 +259,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     }
   }
 
-  func handleWhileTrue(_ node: MessageNode) {
+  func handleWhile(_ condition: Bool, forNode node: MessageNode) {
     guard let receiver = node.receiver as? BlockNode else {
       fatalError("Receiver of #whileXXXX: must be block")
     }
@@ -281,7 +285,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     blockBody.accept(self)
     let numBodyBytes = context.bytecodes.count
 
-    savedReceiverContext.pushConditionalJumpOn(false, numBytes: numBodyBytes+2)
+    savedReceiverContext.pushConditionalJumpOn(!condition, numBytes: numBodyBytes+2)
     let numReceiverBytes = savedReceiverContext.bytecodes.count
 
     context.pushLongJump(-(numBodyBytes+numReceiverBytes+2))
@@ -399,7 +403,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
   public func visitBlockNode(_ node: BlockNode) {
     context.push(.pushContext)
-    context.push(.pushOne)
+    context.pushNum(node.arguments.count)
     context.push(.sendBlockCopy)
     let savedContext = saveContext()
     for argument in node.arguments {
@@ -409,7 +413,9 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     if let body = node.body {
       body.mustHaveValue = node.mustHaveValue
       body.accept(self)
-      context.push(.returnTopFromBlock)
+      if !context.returns() {
+        context.push(.returnTopFromBlock)
+      }
     }
     let numBytes = context.bytecodes.count
     savedContext.pushLongJump(numBytes)

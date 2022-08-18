@@ -210,4 +210,58 @@ insert: anObject before: spot
     let expected = [17, 108, 20, 0, 177, 107, 0, 118, 182, 158, 112, 208, 135, 0, 19, 176, 108, 0, 118, 177, 129, 0, 106, 18, 20, 118, 177, 178, 172, 15, 112, 18, 112, 18, 118, 176, 226, 241, 135, 18, 118, 176, 106, 163, 234, 112, 18, 16, 241, 135, 16, 124]
     try runningSource(source, expecting: expected)
   }
+
+  func testRemoveAllSuchThat() throws {
+    let source = """
+removeAllSuchThat: aBlock
+	"Evaluate aBlock for each element of the receiver.  Remove each element for
+	which aBlock evaluates to true.
+	A subclass might have to override this message to initialize additional instance
+	variables for newCollection"
+
+	| index element newCollection |
+	newCollection _ self species new.
+	index _ firstIndex.
+	[index <= lastIndex]
+		whileTrue:
+			[element _ self basicAt: index.
+			(aBlock value: element)
+				ifTrue:
+					[newCollection add: element.
+					self removeIndex: index]
+				ifFalse: [index _ index + 1]].
+	^newCollection
+"""
+    compiler.context.literals = [
+      .symbolConstant("species"),
+      .symbolConstant("basicAt:"),
+      .symbolConstant("add:"),
+      .symbolConstant("removeIndex:")
+    ]
+    let expected = [112, 208, 204, 107, 0, 105, 17, 1, 180, 172, 24, 112, 17, 225, 106, 16, 18, 202, 159, 19, 18, 226, 135, 112, 17, 227, 148, 17, 118, 176, 129, 65, 135, 163, 227, 19, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testRemoveIfAbsent() throws {
+      let source = """
+  remove: oldObject ifAbsent: absentBlock
+  	| index |
+  	index _ firstIndex.
+  	[index <= lastIndex]
+  		whileTrue:
+  			[oldObject = (self basicAt: index)
+  				ifTrue:
+  					[self removeIndex: index.
+  					^oldObject]
+  				ifFalse: [index _ index + 1]].
+  	^absentBlock value
+  """
+      compiler.context.literals = [
+        .symbolConstant("removeIndex:"),
+        .symbolConstant("basicAt:")
+      ]
+      let expected = [0, 106, 18, 1, 180, 172, 20, 16, 112, 18, 225, 182, 157, 112, 18, 224, 135, 16, 124, 18, 118, 176, 129, 66, 135, 163, 231, 17, 201, 124]
+      try runningSource(source, expecting: expected)
+    }
+
 }
