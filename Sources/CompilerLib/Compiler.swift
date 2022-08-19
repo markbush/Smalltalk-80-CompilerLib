@@ -415,6 +415,8 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     let savedContext = saveContext()
     for argument in node.arguments {
       context.saveTempVar(argument.name)
+    }
+    for argument in node.arguments.reversed() {
       context.popVariable(argument.name)
     }
     if let body = node.body {
