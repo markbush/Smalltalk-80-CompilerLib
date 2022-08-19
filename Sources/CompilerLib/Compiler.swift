@@ -211,7 +211,12 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       savedContext.pushConditionalJumpOn(!condition, numBytes: numBytes)
     } else {
       if node.mustHaveValue {
-        savedContext.push(.jumpOnFalse2)
+        if numBytes > 8 {
+          // Conditional jump will be a long bytecode
+          savedContext.push(.jumpOnFalse3)
+        } else {
+          savedContext.push(.jumpOnFalse2)
+        }
         savedContext.push(.pushNil)
         savedContext.pushJump(numBytes)
       } else {
@@ -350,8 +355,10 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
         context.pushSmallInteger(number)
         return
       }
+      context.pushInteger(value)
+      return
     }
-    fatalError("Cannot handle numbers")
+    fatalError("Cannot handle number: \(value)")
   }
 
   public func visitAssignNode(_ node: AssignNode) {
@@ -417,6 +424,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
         context.push(.returnTopFromBlock)
       }
     }
+    fixReturn(context)
     let numBytes = context.bytecodes.count
     savedContext.pushLongJump(numBytes)
     restoreContextTo(savedContext)

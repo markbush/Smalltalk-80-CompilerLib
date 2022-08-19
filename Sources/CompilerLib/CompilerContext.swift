@@ -62,9 +62,10 @@ public class CompilerContext : CustomStringConvertible {
                ]
     var prev1: Bytecode? = nil
     var prev2: Bytecode? = nil
-    for bytecode in bytecodes {
+    for i in 0..<bytecodes.count {
+      let bytecode = bytecodes[i]
       let bytecodeInfo = bytecode.describeFor(self, prev1: prev1, prev2: prev2)
-      parts.append(bytecodeInfo)
+      parts.append("\(String(format:"%2d", i)) \(bytecodeInfo)")
       prev2 = prev1
       prev1 = bytecode
     }
@@ -211,6 +212,11 @@ public class CompilerContext : CustomStringConvertible {
   }
 
   public func pushSmallInteger(_ number: Int) {
+    let literal = LiteralValue.intConstant(String(number))
+    pushLiteralConstant(literal)
+  }
+
+  public func pushInteger(_ number: String) {
     let literal = LiteralValue.intConstant(number)
     pushLiteralConstant(literal)
   }
@@ -272,8 +278,17 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
+      if node.numArguments <= 7 && index < 32 {
+        let arg = (node.numArguments * 32) + index
+        guard let bytecode = Bytecode(rawValue: arg) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(arg))!")
+        }
+        push(.sendLong)
+        push(bytecode)
+        return
+      }
       // TODO: handle other sends
-      fatalError("Cannot handle non-literal symbol sends")
+      fatalError("Cannot handle selector: \(selector) at index: \(index)")
     }
   }
 
