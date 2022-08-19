@@ -6,21 +6,12 @@ final class CompileRectangleTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
-    let rectangleClass = ClassDescription("Rectangle", instanceVariables: ["origin", "corner"])
-    compiler = Compiler(forClass: rectangleClass)
+    let classDescription = ClassDescription("Rectangle", instanceVariables: ["origin", "corner"])
+    compiler = Compiler(forClass: classDescription)
   }
   override func tearDown() {
     compiler = nil
     super.tearDown()
-  }
-  func runningSource(_ source: String, expecting expected: [Bytecode]) throws {
-    compiler.compileMethod(source)
-    let actual = compiler.context.bytecodes
-    XCTAssertEqual(actual.count, expected.count, "Unexpected number of bytecodes")
-    let count = min(actual.count, expected.count)
-    for i in 0..<count {
-      XCTAssertEqual(actual[i], expected[i], "Different bytecodes at position \(i)")
-    }
   }
   func runningSource(_ source: String, expecting expected: [Int]) throws {
     compiler.compileMethod(source)
@@ -32,22 +23,19 @@ final class CompileRectangleTests: XCTestCase {
     }
   }
 
-  func testOrigin() throws {
+  func testBottomLeft() throws {
     let source = """
-origin
-	"Answer the point at the top left corner of the receiver."
-	^origin
-"""
-    try runningSource(source, expecting: [.pushInstVar0, .returnTop])
-  }
+bottomLeft
+	"Answer the point at the left edge of the bottom horizontal line of the receiver."
+	^origin x @ corner y
 
-  func testSetExtent() throws {
-    let source = """
-extent: extentPoint
-	"Set the extent (width and height) of the receiver to be extentPoint."
-	corner _ origin + extentPoint
 """
-    try runningSource(source, expecting: [.pushInstVar0, .pushTemporary0, .sendPlus, .popInstanceVar1, .returnSelf])
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 8
+    let expected = [0, 206, 1, 207, 187, 124]
+    try runningSource(source, expecting: expected)
   }
 
   func testEquals() throws {
@@ -58,9 +46,117 @@ extent: extentPoint
 	self species = aRectangle species
 		ifTrue: [^origin = aRectangle origin and: [corner = aRectangle corner]]
 		ifFalse: [^false]
+
 """
-    compiler.context.literals = [.symbolConstant("corner"), .symbolConstant("origin"), .symbolConstant("species")]
+    compiler.context.literals = [
+      .symbolConstant("corner"),
+      .symbolConstant("origin"),
+      .symbolConstant("species")
+    ]
+    // 9 .. 28
     let expected = [112, 210, 16, 210, 182, 172, 12, 0, 16, 209, 182, 156, 1, 16, 208, 182, 144, 114, 124, 122]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testExpandBy() throws {
+    let source = """
+expandBy: delta
+	"Answer a Rectangle that is outset from the receiver by delta.
+	 delta is a Rectangle, Point, or scalar."
+
+	(delta isKindOf: Rectangle)
+		ifTrue: [^Rectangle
+					origin: origin - delta origin
+					corner: corner + delta corner]
+		ifFalse: [^Rectangle
+					origin: origin - delta
+					corner: corner + delta]
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("origin:corner:"),
+      .stringVariable("Rectangle", "Rectangle"),
+      .symbolConstant("origin"),
+      .symbolConstant("corner"),
+      .symbolConstant("isKindOf:")
+    ]
+    // 13 .. 37
+    let expected = [16, 65, 228, 172, 11, 65, 0, 16, 210, 177, 1, 16, 211, 176, 240, 124, 65, 0, 16, 177, 1, 16, 176, 240, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testOriginCorner() throws {
+    let source = """
+origin: originPoint corner: cornerPoint
+	"Set the points at the top left corner and the bottom right corner of the receiver."
+	origin _ originPoint.
+	corner _ cornerPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 7
+    let expected = [16, 96, 17, 97, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testOriginExtent() throws {
+    let source = """
+origin: originPoint extent: extentPoint
+	"Set the point at the top left corner of the receiver to be originPoint and
+	set the width and height of the receiver to be extentPoint."
+	origin _ originPoint.
+	corner _ origin + extentPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 9
+    let expected = [16, 96, 0, 17, 176, 97, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testInsetBy() throws {
+    let source = """
+insetBy: delta
+	"Answer a Rectangle that is inset from the receiver by delta.
+	 delta is a Rectangle, Point, or scalar."
+
+	(delta isKindOf: Rectangle)
+		ifTrue: [^Rectangle
+					origin: origin + delta origin
+					corner: corner - delta corner]
+		ifFalse: [^Rectangle
+					origin: origin + delta
+					corner: corner - delta]
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("origin:corner:"),
+      .stringVariable("Rectangle", "Rectangle"),
+      .symbolConstant("origin"),
+      .symbolConstant("corner"),
+      .symbolConstant("isKindOf:")
+    ]
+    // 13 .. 37
+    let expected = [16, 65, 228, 172, 11, 65, 0, 16, 210, 176, 1, 16, 211, 177, 240, 124, 65, 0, 16, 176, 1, 16, 177, 240, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetExtent() throws {
+    let source = """
+extent: extentPoint
+	"Set the extent (width and height) of the receiver to be extentPoint."
+	corner _ origin + extentPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 7
+    let expected = [0, 16, 176, 97, 120]
     try runningSource(source, expecting: expected)
   }
 
@@ -75,6 +171,7 @@ storeOn: aStream
 	nextPutAll: ' corner: ';
 	store: corner;
 	nextPut: $).
+
 """
     compiler.context.literals = [
       .characterConstant("("),
@@ -86,7 +183,84 @@ storeOn: aStream
       .stringConstant(" corner: "),
       .characterConstant(")")
     ]
+    // 19 .. 49
     let expected = [16, 136, 32, 196, 135, 136, 112, 211, 210, 225, 135, 136, 36, 225, 135, 136, 0, 229, 135, 136, 38, 225, 135, 136, 1, 229, 135, 39, 196, 135, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetOrigin() throws {
+    let source = """
+origin: originPoint
+	"Set the point at the top left corner of the receiver."
+	origin _ originPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 5
+    let expected = [16, 96, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetCorner() throws {
+    let source = """
+corner: cornerPoint
+	"Set the point at the bottom right corner of the receiver."
+	corner _ cornerPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 5
+    let expected = [16, 97, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testHashMappedBy() throws {
+    let source = """
+hashMappedBy: map
+	"My hash is independent of my oop"
+	^ self hash
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("hash")
+    ]
+    // 5 .. 7
+    let expected = [112, 208, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetRight() throws {
+    let source = """
+right: anInteger
+	"Set the position of the receiver's right vertical line."
+	corner x: anInteger
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("x:")
+    ]
+    // 5 .. 9
+    let expected = [1, 16, 224, 135, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testTopCenter() throws {
+    let source = """
+topCenter
+	"Answer the point at the center of the receiver's top horizontal line."
+	^self center x @ self top
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("center"),
+      .symbolConstant("top")
+    ]
+    // 7 .. 13
+    let expected = [112, 208, 206, 112, 209, 187, 124]
     try runningSource(source, expecting: expected)
   }
 
@@ -102,6 +276,7 @@ amountToTranslateWithin: aRectangle
 	self right > aRectangle right ifTrue: [delta x: aRectangle right - self right].
 	self bottom > aRectangle bottom ifTrue: [delta y: aRectangle bottom - self bottom].
 	^delta
+
 """
     compiler.context.literals = [
       .symbolConstant("x:"),
@@ -111,7 +286,544 @@ amountToTranslateWithin: aRectangle
       .symbolConstant("right"),
       .symbolConstant("bottom")
     ]
+    // 15 .. 76
     let expected = [117, 117, 187, 105, 112, 209, 16, 209, 178, 159, 17, 16, 209, 112, 209, 177, 224, 135, 112, 211, 16, 211, 178, 159, 17, 16, 211, 112, 211, 177, 226, 135, 112, 212, 16, 212, 179, 159, 17, 16, 212, 112, 212, 177, 224, 135, 112, 213, 16, 213, 179, 159, 17, 16, 213, 112, 213, 177, 226, 135, 17, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetLeft() throws {
+    let source = """
+left: anInteger
+	"Set the position of the receiver's left vertical line."
+	origin x: anInteger
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("x:")
+    ]
+    // 5 .. 9
+    let expected = [0, 16, 224, 135, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testMoveBy() throws {
+    let source = """
+moveBy: aPoint
+	"Change the corner positions of the receiver so that its area translates by
+	the amount defined by the argument, aPoint."
+	origin _ origin + aPoint.
+	corner _ corner + aPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 11
+    let expected = [0, 16, 176, 96, 1, 16, 176, 97, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testBottomCenter() throws {
+    let source = """
+bottomCenter
+	"Answer the point at the center of the bottom horizontal line of the receiver."
+	^self center x @ self bottom
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("center"),
+      .symbolConstant("bottom")
+    ]
+    // 7 .. 13
+    let expected = [112, 208, 206, 112, 209, 187, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testMerge() throws {
+    let source = """
+merge: aRectangle
+	"Answer a Rectangle that contains both the receiver and aRectangle."
+
+	^Rectangle
+		origin: (origin min: aRectangle origin)
+		corner: (corner max: aRectangle corner)
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("origin:corner:"),
+      .stringVariable("Rectangle", "Rectangle"),
+      .symbolConstant("min:"),
+      .symbolConstant("origin"),
+      .symbolConstant("max:"),
+      .symbolConstant("corner")
+    ]
+    // 15 .. 25
+    let expected = [65, 0, 16, 211, 226, 1, 16, 213, 228, 240, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testLeftCenter() throws {
+    let source = """
+leftCenter
+	"Answer the point at the center of the receiver's left vertical line."
+	^self left @ self center y
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("left"),
+      .symbolConstant("center")
+    ]
+    // 7 .. 13
+    let expected = [112, 208, 112, 209, 207, 187, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testInsetOriginByCornerBy() throws {
+    let source = """
+insetOriginBy: originDeltaPoint cornerBy: cornerDeltaPoint
+	"Answer a Rectangle that is inset from the receiver by a given amount in the
+	origin and corner."
+
+	^Rectangle
+		origin: origin + originDeltaPoint
+		corner: corner - cornerDeltaPoint
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("origin:corner:"),
+      .stringVariable("Rectangle", "Rectangle")
+    ]
+    // 7 .. 15
+    let expected = [65, 0, 16, 176, 1, 17, 177, 240, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testBottom() throws {
+    let source = """
+bottom
+	"Answer the position of the receiver's bottom horizontal line."
+	^corner y
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 5
+    let expected = [1, 207, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetWidth() throws {
+    let source = """
+width: widthInteger
+	"Change the receiver's right vertical line to make its width widthInteger."
+	corner x: origin x + widthInteger
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("x:")
+    ]
+    // 5 .. 12
+    let expected = [1, 0, 206, 16, 176, 224, 135, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetTop() throws {
+    let source = """
+top: anInteger
+	"Set the position of the receiver's top horizontal line."
+	origin y: anInteger
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("y:")
+    ]
+    // 5 .. 9
+    let expected = [0, 16, 224, 135, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetTopLeft() throws {
+    let source = """
+topLeft: topLeftPoint
+	"Set the point at the top left corner of the receiver's top horizontal line."
+	origin _ topLeftPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 5
+    let expected = [16, 96, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testArea() throws {
+    let source = """
+area
+	"Answer the receiver's area, the product of width and height."
+	^self width * self height
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("width"),
+      .symbolConstant("height")
+    ]
+    // 7 .. 12
+    let expected = [112, 208, 112, 209, 184, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testRightCenter() throws {
+    let source = """
+rightCenter
+	"Answer the point at the center of the receiver's right vertical line."
+	^self right @ self center y
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("right"),
+      .symbolConstant("center")
+    ]
+    // 7 .. 13
+    let expected = [112, 208, 112, 209, 207, 187, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetBottomRight() throws {
+    let source = """
+bottomRight: bottomRightPoint
+	"Set the position of the right corner of the bottom horizontal line of the receiver."
+	corner _ bottomRightPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 5
+    let expected = [16, 97, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testContains() throws {
+    let source = """
+contains: aRectangle
+	"Answer whether the receiver is equal to aRectangle or whether aRectangle
+	is contained within the receiver."
+
+	^aRectangle origin >= origin and: [aRectangle corner <= corner]
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("corner"),
+      .symbolConstant("origin")
+    ]
+    // 7 .. 18
+    let expected = [16, 209, 0, 181, 156, 16, 208, 1, 180, 144, 114, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testIntersects() throws {
+    let source = """
+intersects: aRectangle
+	"Answer whether aRectangle intersects the receiver anywhere."
+
+	^(origin max: aRectangle origin) < (corner min: aRectangle corner)
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("max:"),
+      .symbolConstant("origin"),
+      .symbolConstant("min:"),
+      .symbolConstant("corner")
+    ]
+    // 11 .. 20
+    let expected = [0, 16, 209, 224, 1, 16, 211, 226, 178, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetHeight() throws {
+    let source = """
+height: heightInteger
+	"Change the receiver's bottom y to make its height heightInteger."
+	corner y: origin y + heightInteger
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("y:")
+    ]
+    // 5 .. 12
+    let expected = [1, 0, 207, 16, 176, 224, 135, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testRight() throws {
+    let source = """
+right
+	"Answer the position of the receiver's right vertical line."
+	^corner x
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 5
+    let expected = [1, 206, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testTopRight() throws {
+    let source = """
+topRight
+	"Answer the point at the top right corner of the receiver's top horizontal line."
+	^corner x @ origin y
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 8
+    let expected = [1, 206, 0, 207, 187, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testSetBottom() throws {
+    let source = """
+bottom: anInteger
+	"Set the position of the bottom horizontal line of the receiver."
+	corner y: anInteger
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("y:")
+    ]
+    // 5 .. 9
+    let expected = [1, 16, 224, 135, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testMoveTo() throws {
+    let source = """
+moveTo: aPoint
+	"Change the corners of the receiver so that its top left position is aPoint."
+
+	corner _ corner + aPoint - origin.
+	origin _ aPoint
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 11
+    let expected = [1, 16, 176, 0, 177, 97, 16, 96, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testCenter() throws {
+    let source = """
+center
+	"Answer the point at the center of the receiver."
+	^self topLeft + self bottomRight // 2
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("topLeft"),
+      .symbolConstant("bottomRight")
+    ]
+    // 7 .. 14
+    let expected = [112, 208, 112, 209, 176, 119, 189, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testContainsPoint() throws {
+    let source = """
+containsPoint: aPoint
+	"Answer whether aPoint is within the receiver."
+
+	^origin <= aPoint and: [aPoint < corner]
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 12
+    let expected = [0, 16, 180, 155, 16, 1, 178, 144, 114, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testAlignWith() throws {
+    let source = """
+align: aPoint1 with: aPoint2
+	"Answer a new Rectangle that is a translated by aPoint2 - aPoint1."
+	^self translateBy: aPoint2 - aPoint1
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("translateBy:")
+    ]
+    // 5 .. 10
+    let expected = [112, 17, 16, 177, 224, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testScaleBy() throws {
+    let source = """
+scaleBy: scale
+	"Answer a new Rectangle scaled by scale, a Point or a scalar."
+
+	^Rectangle origin: origin * scale corner: corner * scale
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("origin:corner:"),
+      .stringVariable("Rectangle", "Rectangle")
+    ]
+    // 7 .. 15
+    let expected = [65, 0, 16, 184, 1, 16, 184, 240, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testTranslateBy() throws {
+    let source = """
+translateBy: factor
+	"Answer a new Rectangle translated by factor, a Point or a scalar."
+
+	^Rectangle origin: origin + factor corner: corner + factor
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("origin:corner:"),
+      .stringVariable("Rectangle", "Rectangle")
+    ]
+    // 7 .. 15
+    let expected = [65, 0, 16, 176, 1, 16, 176, 240, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testRounded() throws {
+    let source = """
+rounded
+	"Answer a Rectangle whose origin and corner are rounded."
+
+	^Rectangle origin: origin rounded corner: corner rounded
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("origin:corner:"),
+      .stringVariable("Rectangle", "Rectangle"),
+      .symbolConstant("rounded")
+    ]
+    // 9 .. 15
+    let expected = [65, 0, 210, 1, 210, 240, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testExtent() throws {
+    let source = """
+extent
+	"Answer with a rectangle with origin 0@0 and corner the receiver's
+	width @ the receiver's height."
+	^corner - origin
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 6
+    let expected = [1, 0, 177, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testLeft() throws {
+    let source = """
+left
+	"Answer the position of the receiver's left vertical line."
+	^origin x
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 5
+    let expected = [0, 206, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testTop() throws {
+    let source = """
+top
+	"Answer the position of the receiver's top horizontal line."
+	^origin y
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 5
+    let expected = [0, 207, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testWidth() throws {
+    let source = """
+width
+	"Answer the width of the receiver."
+	^corner x - origin x
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 8
+    let expected = [1, 206, 0, 206, 177, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testHeight() throws {
+    let source = """
+height
+	"Answer the height of the receiver."
+	^corner y - origin y
+
+"""
+    compiler.context.literals = [
+
+    ]
+    // 3 .. 8
+    let expected = [1, 207, 0, 207, 177, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testPrintOn() throws {
+    let source = """
+printOn: aStream
+	origin printOn: aStream.
+	aStream nextPutAll: ' corner: '.
+	corner printOn: aStream
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("printOn:"),
+      .symbolConstant("nextPutAll:"),
+      .stringConstant(" corner: ")
+    ]
+    // 9 .. 21
+    let expected = [0, 16, 224, 135, 16, 34, 225, 135, 1, 16, 224, 135, 120]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testHash() throws {
+    let source = """
+hash
+	^origin hash bitXor: corner hash
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("bitXor:"),
+      .symbolConstant("hash")
+    ]
+    // 7 .. 12
+    let expected = [0, 209, 1, 209, 224, 124]
     try runningSource(source, expecting: expected)
   }
 
@@ -136,6 +848,7 @@ areasOutside: aRectangle
 	aRectangle corner x < corner x
 		ifTrue: [areas add: (aRectangle corner x @ yOrigin corner: corner x @ yCorner)].
 	^areas
+
 """
     compiler.context.literals = [
       .symbolConstant("with:"),
@@ -146,7 +859,47 @@ areasOutside: aRectangle
       .symbolConstant("add:"),
       .symbolConstant("corner:")
     ]
+    // 17 .. 132
     let expected = [0, 16, 211, 180, 156, 16, 210, 1, 180, 144, 114, 168, 4, 65, 112, 224, 124, 68, 204, 105, 16, 210, 207, 0, 207, 179, 172, 13, 17, 0, 1, 206, 16, 210, 207, 129, 66, 187, 230, 229, 147, 0, 207, 129, 66, 135, 16, 211, 207, 1, 207, 178, 172, 13, 17, 0, 206, 16, 211, 207, 129, 67, 187, 1, 230, 229, 147, 1, 207, 129, 67, 135, 16, 210, 206, 0, 206, 179, 172, 13, 17, 0, 206, 18, 187, 16, 210, 206, 19, 187, 230, 229, 135, 16, 211, 206, 1, 206, 178, 172, 13, 17, 16, 211, 206, 18, 187, 1, 206, 19, 187, 230, 229, 135, 17, 124]
     try runningSource(source, expecting: expected)
   }
+
+  func testIntersect() throws {
+    let source = """
+intersect: aRectangle
+	"Answer a Rectangle that is the area in which the receiver overlaps with
+	aRectangle. "
+
+	^Rectangle
+		origin: (origin max: aRectangle origin)
+		corner: (corner min: aRectangle corner)
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("origin:corner:"),
+      .stringVariable("Rectangle", "Rectangle"),
+      .symbolConstant("max:"),
+      .symbolConstant("origin"),
+      .symbolConstant("min:"),
+      .symbolConstant("corner")
+    ]
+    // 15 .. 25
+    let expected = [65, 0, 16, 211, 226, 1, 16, 213, 228, 240, 124]
+    try runningSource(source, expecting: expected)
+  }
+
+  func testCopy() throws {
+    let source = """
+copy
+	^self deepCopy
+
+"""
+    compiler.context.literals = [
+      .symbolConstant("deepCopy")
+    ]
+    // 5 .. 7
+    let expected = [112, 208, 124]
+    try runningSource(source, expecting: expected)
+  }
+
 }
