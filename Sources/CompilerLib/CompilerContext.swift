@@ -56,7 +56,7 @@ public class CompilerContext : CustomStringConvertible {
                  "Instance variables: \(classDescription.instanceVariables)",
                  "Arguments: \(arguments)",
                  "Temporaries: \(temporaries)",
-                 "Literals: \(literalDescriptions)",
+                 "Literals: [\n      \(literalDescriptions.joined(separator: ",\n      "))\n    ]",
                  "===========================",
                  "Bytecodes:"
                ]

@@ -71,6 +71,9 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       context.addTemp(variableNode.name)
     }
     // TODO: Pragmas
+    if node.statements.count == 0 && node.mustHaveValue {
+      context.push(.pushNil)
+    }
     for i in 0..<node.statements.count {
       let statement = node.statements[i]
       statement.mustHaveValue = (statement.isLastInBlock) ? node.mustHaveValue : false
@@ -300,7 +303,6 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
   }
 
   func handleMessageSendFor(_ node: MessageNode) {
-    context.saveSelectorFor(node)
     for argument in node.arguments {
       argument.mustHaveValue = true
       argument.accept(self)
@@ -317,6 +319,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       handleSpecialSelector(node)
       return
     }
+    context.saveSelectorFor(node)
     node.receiver.accept(self)
     handleMessageSendFor(node)
   }
