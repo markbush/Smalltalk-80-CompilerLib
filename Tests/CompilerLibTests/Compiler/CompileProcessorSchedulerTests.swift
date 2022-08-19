@@ -136,7 +136,7 @@ signal: aSemaphore atMilliseconds: milliseconds
 """
     compiler.context.literals = [
       .symbolConstant("primitiveFailed"),
-      .intConstant(612),
+      .intConstant("612"),
       .stringVariable("ProcessorScheduler", "ProcessorScheduler")
     ]
     // 9 .. 12
@@ -325,10 +325,10 @@ signal: aSemaphore atTime: timeInterval
       .stringConstant("Can't convert time to double word"),
       .symbolConstant("negative"),
       .symbolConstant("digitLength"),
-      .intConstant(4),
+      .intConstant("4"),
       .stringVariable("ByteArray", "ByteArray"),
       .symbolConstant("digitAt:"),
-      .intConstant(3),
+      .intConstant("3"),
       .symbolConstant("signal:atMilliseconds:")
     ]
     // 21 .. 71
