@@ -128,7 +128,7 @@ fullCheck
     compiler.context.literals = [
       .symbolConstant("grow"),
       .symbolConstant("basicSize"),
-      .intConstant(4)
+      .intConstant("4")
     ]
     // 9 .. 23
     let expected = [112, 209, 112, 194, 177, 112, 209, 34, 189, 180, 154, 112, 208, 135, 120]
