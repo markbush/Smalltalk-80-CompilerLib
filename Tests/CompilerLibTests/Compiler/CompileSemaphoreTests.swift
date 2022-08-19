@@ -77,7 +77,7 @@ wait
 """
     compiler.context.literals = [
       .symbolConstant("primitiveFailed"),
-      .intConstant(86),
+      .intConstant("86"),
       .stringVariable("Semaphore", "Semaphore")
     ]
     // 9 .. 12
@@ -102,7 +102,7 @@ signal
 """
     compiler.context.literals = [
       .symbolConstant("primitiveFailed"),
-      .intConstant(85),
+      .intConstant("85"),
       .stringVariable("Semaphore", "Semaphore")
     ]
     // 9 .. 12
