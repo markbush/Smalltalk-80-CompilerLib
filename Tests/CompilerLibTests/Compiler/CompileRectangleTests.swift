@@ -30,13 +30,11 @@ bottomLeft
 	^origin x @ corner y
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 8
     let expected = [0, 206, 1, 207, 187, 124]
     try runningSource(source, expecting: expected)
   }
+
 
   func testEquals() throws {
     let source = """
@@ -48,11 +46,6 @@ bottomLeft
 		ifFalse: [^false]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("corner"),
-      .symbolConstant("origin"),
-      .symbolConstant("species")
-    ]
     // 9 .. 28
     let expected = [112, 210, 16, 210, 182, 172, 12, 0, 16, 209, 182, 156, 1, 16, 208, 182, 144, 114, 124, 122]
     try runningSource(source, expecting: expected)
@@ -73,13 +66,6 @@ expandBy: delta
 					corner: corner + delta]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("origin:corner:"),
-      .stringVariable("Rectangle", "Rectangle"),
-      .symbolConstant("origin"),
-      .symbolConstant("corner"),
-      .symbolConstant("isKindOf:")
-    ]
     // 13 .. 37
     let expected = [16, 65, 228, 172, 11, 65, 0, 16, 210, 177, 1, 16, 211, 176, 240, 124, 65, 0, 16, 177, 1, 16, 176, 240, 124]
     try runningSource(source, expecting: expected)
@@ -93,9 +79,6 @@ origin: originPoint corner: cornerPoint
 	corner _ cornerPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 7
     let expected = [16, 96, 17, 97, 120]
     try runningSource(source, expecting: expected)
@@ -110,9 +93,6 @@ origin: originPoint extent: extentPoint
 	corner _ origin + extentPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 9
     let expected = [16, 96, 0, 17, 176, 97, 120]
     try runningSource(source, expecting: expected)
@@ -133,13 +113,6 @@ insetBy: delta
 					corner: corner - delta]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("origin:corner:"),
-      .stringVariable("Rectangle", "Rectangle"),
-      .symbolConstant("origin"),
-      .symbolConstant("corner"),
-      .symbolConstant("isKindOf:")
-    ]
     // 13 .. 37
     let expected = [16, 65, 228, 172, 11, 65, 0, 16, 210, 176, 1, 16, 211, 177, 240, 124, 65, 0, 16, 176, 1, 16, 177, 240, 124]
     try runningSource(source, expecting: expected)
@@ -152,9 +125,6 @@ extent: extentPoint
 	corner _ origin + extentPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 7
     let expected = [0, 16, 176, 97, 120]
     try runningSource(source, expecting: expected)
@@ -173,46 +143,32 @@ storeOn: aStream
 	nextPut: $).
 
 """
-    compiler.context.literals = [
-      .characterConstant("("),
-      .symbolConstant("nextPutAll:"),
-      .symbolConstant("name"),
-      .symbolConstant("species"),
-      .stringConstant(" origin: "),
-      .symbolConstant("store:"),
-      .stringConstant(" corner: "),
-      .characterConstant(")")
-    ]
     // 19 .. 49
     let expected = [16, 136, 32, 196, 135, 136, 112, 211, 210, 225, 135, 136, 36, 225, 135, 136, 0, 229, 135, 136, 38, 225, 135, 136, 1, 229, 135, 39, 196, 135, 120]
     try runningSource(source, expecting: expected)
   }
 
-  func testSetOrigin() throws {
+
+
+  func testOrigin() throws {
     let source = """
 origin: originPoint
 	"Set the point at the top left corner of the receiver."
 	origin _ originPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [16, 96, 120]
     try runningSource(source, expecting: expected)
   }
 
-  func testSetCorner() throws {
+  func testCorner() throws {
     let source = """
 corner: cornerPoint
 	"Set the point at the bottom right corner of the receiver."
 	corner _ cornerPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [16, 97, 120]
     try runningSource(source, expecting: expected)
@@ -225,9 +181,6 @@ hashMappedBy: map
 	^ self hash
 
 """
-    compiler.context.literals = [
-      .symbolConstant("hash")
-    ]
     // 5 .. 7
     let expected = [112, 208, 124]
     try runningSource(source, expecting: expected)
@@ -240,9 +193,6 @@ right: anInteger
 	corner x: anInteger
 
 """
-    compiler.context.literals = [
-      .symbolConstant("x:")
-    ]
     // 5 .. 9
     let expected = [1, 16, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -255,10 +205,6 @@ topCenter
 	^self center x @ self top
 
 """
-    compiler.context.literals = [
-      .symbolConstant("center"),
-      .symbolConstant("top")
-    ]
     // 7 .. 13
     let expected = [112, 208, 206, 112, 209, 187, 124]
     try runningSource(source, expecting: expected)
@@ -278,14 +224,6 @@ amountToTranslateWithin: aRectangle
 	^delta
 
 """
-    compiler.context.literals = [
-      .symbolConstant("x:"),
-      .symbolConstant("left"),
-      .symbolConstant("y:"),
-      .symbolConstant("top"),
-      .symbolConstant("right"),
-      .symbolConstant("bottom")
-    ]
     // 15 .. 76
     let expected = [117, 117, 187, 105, 112, 209, 16, 209, 178, 159, 17, 16, 209, 112, 209, 177, 224, 135, 112, 211, 16, 211, 178, 159, 17, 16, 211, 112, 211, 177, 226, 135, 112, 212, 16, 212, 179, 159, 17, 16, 212, 112, 212, 177, 224, 135, 112, 213, 16, 213, 179, 159, 17, 16, 213, 112, 213, 177, 226, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -298,9 +236,6 @@ left: anInteger
 	origin x: anInteger
 
 """
-    compiler.context.literals = [
-      .symbolConstant("x:")
-    ]
     // 5 .. 9
     let expected = [0, 16, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -315,9 +250,6 @@ moveBy: aPoint
 	corner _ corner + aPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 11
     let expected = [0, 16, 176, 96, 1, 16, 176, 97, 120]
     try runningSource(source, expecting: expected)
@@ -330,10 +262,6 @@ bottomCenter
 	^self center x @ self bottom
 
 """
-    compiler.context.literals = [
-      .symbolConstant("center"),
-      .symbolConstant("bottom")
-    ]
     // 7 .. 13
     let expected = [112, 208, 206, 112, 209, 187, 124]
     try runningSource(source, expecting: expected)
@@ -349,14 +277,6 @@ merge: aRectangle
 		corner: (corner max: aRectangle corner)
 
 """
-    compiler.context.literals = [
-      .symbolConstant("origin:corner:"),
-      .stringVariable("Rectangle", "Rectangle"),
-      .symbolConstant("min:"),
-      .symbolConstant("origin"),
-      .symbolConstant("max:"),
-      .symbolConstant("corner")
-    ]
     // 15 .. 25
     let expected = [65, 0, 16, 211, 226, 1, 16, 213, 228, 240, 124]
     try runningSource(source, expecting: expected)
@@ -369,10 +289,6 @@ leftCenter
 	^self left @ self center y
 
 """
-    compiler.context.literals = [
-      .symbolConstant("left"),
-      .symbolConstant("center")
-    ]
     // 7 .. 13
     let expected = [112, 208, 112, 209, 207, 187, 124]
     try runningSource(source, expecting: expected)
@@ -389,14 +305,11 @@ insetOriginBy: originDeltaPoint cornerBy: cornerDeltaPoint
 		corner: corner - cornerDeltaPoint
 
 """
-    compiler.context.literals = [
-      .symbolConstant("origin:corner:"),
-      .stringVariable("Rectangle", "Rectangle")
-    ]
     // 7 .. 15
     let expected = [65, 0, 16, 176, 1, 17, 177, 240, 124]
     try runningSource(source, expecting: expected)
   }
+
 
   func testBottom() throws {
     let source = """
@@ -405,9 +318,6 @@ bottom
 	^corner y
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [1, 207, 124]
     try runningSource(source, expecting: expected)
@@ -420,9 +330,6 @@ width: widthInteger
 	corner x: origin x + widthInteger
 
 """
-    compiler.context.literals = [
-      .symbolConstant("x:")
-    ]
     // 5 .. 12
     let expected = [1, 0, 206, 16, 176, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -435,24 +342,18 @@ top: anInteger
 	origin y: anInteger
 
 """
-    compiler.context.literals = [
-      .symbolConstant("y:")
-    ]
     // 5 .. 9
     let expected = [0, 16, 224, 135, 120]
     try runningSource(source, expecting: expected)
   }
 
-  func testSetTopLeft() throws {
+  func testTopLeft() throws {
     let source = """
 topLeft: topLeftPoint
 	"Set the point at the top left corner of the receiver's top horizontal line."
 	origin _ topLeftPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [16, 96, 120]
     try runningSource(source, expecting: expected)
@@ -465,10 +366,6 @@ area
 	^self width * self height
 
 """
-    compiler.context.literals = [
-      .symbolConstant("width"),
-      .symbolConstant("height")
-    ]
     // 7 .. 12
     let expected = [112, 208, 112, 209, 184, 124]
     try runningSource(source, expecting: expected)
@@ -481,25 +378,18 @@ rightCenter
 	^self right @ self center y
 
 """
-    compiler.context.literals = [
-      .symbolConstant("right"),
-      .symbolConstant("center")
-    ]
     // 7 .. 13
     let expected = [112, 208, 112, 209, 207, 187, 124]
     try runningSource(source, expecting: expected)
   }
 
-  func testSetBottomRight() throws {
+  func testBottomRight() throws {
     let source = """
 bottomRight: bottomRightPoint
 	"Set the position of the right corner of the bottom horizontal line of the receiver."
 	corner _ bottomRightPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [16, 97, 120]
     try runningSource(source, expecting: expected)
@@ -514,10 +404,6 @@ contains: aRectangle
 	^aRectangle origin >= origin and: [aRectangle corner <= corner]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("corner"),
-      .symbolConstant("origin")
-    ]
     // 7 .. 18
     let expected = [16, 209, 0, 181, 156, 16, 208, 1, 180, 144, 114, 124]
     try runningSource(source, expecting: expected)
@@ -531,12 +417,6 @@ intersects: aRectangle
 	^(origin max: aRectangle origin) < (corner min: aRectangle corner)
 
 """
-    compiler.context.literals = [
-      .symbolConstant("max:"),
-      .symbolConstant("origin"),
-      .symbolConstant("min:"),
-      .symbolConstant("corner")
-    ]
     // 11 .. 20
     let expected = [0, 16, 209, 224, 1, 16, 211, 226, 178, 124]
     try runningSource(source, expecting: expected)
@@ -549,9 +429,6 @@ height: heightInteger
 	corner y: origin y + heightInteger
 
 """
-    compiler.context.literals = [
-      .symbolConstant("y:")
-    ]
     // 5 .. 12
     let expected = [1, 0, 207, 16, 176, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -564,9 +441,6 @@ right
 	^corner x
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [1, 206, 124]
     try runningSource(source, expecting: expected)
@@ -579,9 +453,6 @@ topRight
 	^corner x @ origin y
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 8
     let expected = [1, 206, 0, 207, 187, 124]
     try runningSource(source, expecting: expected)
@@ -594,9 +465,6 @@ bottom: anInteger
 	corner y: anInteger
 
 """
-    compiler.context.literals = [
-      .symbolConstant("y:")
-    ]
     // 5 .. 9
     let expected = [1, 16, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -611,9 +479,6 @@ moveTo: aPoint
 	origin _ aPoint
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 11
     let expected = [1, 16, 176, 0, 177, 97, 16, 96, 120]
     try runningSource(source, expecting: expected)
@@ -626,10 +491,6 @@ center
 	^self topLeft + self bottomRight // 2
 
 """
-    compiler.context.literals = [
-      .symbolConstant("topLeft"),
-      .symbolConstant("bottomRight")
-    ]
     // 7 .. 14
     let expected = [112, 208, 112, 209, 176, 119, 189, 124]
     try runningSource(source, expecting: expected)
@@ -643,9 +504,6 @@ containsPoint: aPoint
 	^origin <= aPoint and: [aPoint < corner]
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 12
     let expected = [0, 16, 180, 155, 16, 1, 178, 144, 114, 124]
     try runningSource(source, expecting: expected)
@@ -658,9 +516,6 @@ align: aPoint1 with: aPoint2
 	^self translateBy: aPoint2 - aPoint1
 
 """
-    compiler.context.literals = [
-      .symbolConstant("translateBy:")
-    ]
     // 5 .. 10
     let expected = [112, 17, 16, 177, 224, 124]
     try runningSource(source, expecting: expected)
@@ -674,10 +529,6 @@ scaleBy: scale
 	^Rectangle origin: origin * scale corner: corner * scale
 
 """
-    compiler.context.literals = [
-      .symbolConstant("origin:corner:"),
-      .stringVariable("Rectangle", "Rectangle")
-    ]
     // 7 .. 15
     let expected = [65, 0, 16, 184, 1, 16, 184, 240, 124]
     try runningSource(source, expecting: expected)
@@ -691,10 +542,6 @@ translateBy: factor
 	^Rectangle origin: origin + factor corner: corner + factor
 
 """
-    compiler.context.literals = [
-      .symbolConstant("origin:corner:"),
-      .stringVariable("Rectangle", "Rectangle")
-    ]
     // 7 .. 15
     let expected = [65, 0, 16, 176, 1, 16, 176, 240, 124]
     try runningSource(source, expecting: expected)
@@ -708,11 +555,6 @@ rounded
 	^Rectangle origin: origin rounded corner: corner rounded
 
 """
-    compiler.context.literals = [
-      .symbolConstant("origin:corner:"),
-      .stringVariable("Rectangle", "Rectangle"),
-      .symbolConstant("rounded")
-    ]
     // 9 .. 15
     let expected = [65, 0, 210, 1, 210, 240, 124]
     try runningSource(source, expecting: expected)
@@ -726,9 +568,6 @@ extent
 	^corner - origin
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 6
     let expected = [1, 0, 177, 124]
     try runningSource(source, expecting: expected)
@@ -741,9 +580,6 @@ left
 	^origin x
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [0, 206, 124]
     try runningSource(source, expecting: expected)
@@ -756,9 +592,6 @@ top
 	^origin y
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [0, 207, 124]
     try runningSource(source, expecting: expected)
@@ -771,9 +604,6 @@ width
 	^corner x - origin x
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 8
     let expected = [1, 206, 0, 206, 177, 124]
     try runningSource(source, expecting: expected)
@@ -786,9 +616,6 @@ height
 	^corner y - origin y
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 8
     let expected = [1, 207, 0, 207, 177, 124]
     try runningSource(source, expecting: expected)
@@ -802,11 +629,6 @@ printOn: aStream
 	corner printOn: aStream
 
 """
-    compiler.context.literals = [
-      .symbolConstant("printOn:"),
-      .symbolConstant("nextPutAll:"),
-      .stringConstant(" corner: ")
-    ]
     // 9 .. 21
     let expected = [0, 16, 224, 135, 16, 34, 225, 135, 1, 16, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -818,10 +640,6 @@ hash
 	^origin hash bitXor: corner hash
 
 """
-    compiler.context.literals = [
-      .symbolConstant("bitXor:"),
-      .symbolConstant("hash")
-    ]
     // 7 .. 12
     let expected = [0, 209, 1, 209, 224, 124]
     try runningSource(source, expecting: expected)
@@ -850,15 +668,6 @@ areasOutside: aRectangle
 	^areas
 
 """
-    compiler.context.literals = [
-      .symbolConstant("with:"),
-      .stringVariable("Array", "Array"),
-      .symbolConstant("origin"),
-      .symbolConstant("corner"),
-      .stringVariable("OrderedCollection", "OrderedCollection"),
-      .symbolConstant("add:"),
-      .symbolConstant("corner:")
-    ]
     // 17 .. 132
     let expected = [0, 16, 211, 180, 156, 16, 210, 1, 180, 144, 114, 168, 4, 65, 112, 224, 124, 68, 204, 105, 16, 210, 207, 0, 207, 179, 172, 13, 17, 0, 1, 206, 16, 210, 207, 129, 66, 187, 230, 229, 147, 0, 207, 129, 66, 135, 16, 211, 207, 1, 207, 178, 172, 13, 17, 0, 206, 16, 211, 207, 129, 67, 187, 1, 230, 229, 147, 1, 207, 129, 67, 135, 16, 210, 206, 0, 206, 179, 172, 13, 17, 0, 206, 18, 187, 16, 210, 206, 19, 187, 230, 229, 135, 16, 211, 206, 1, 206, 178, 172, 13, 17, 16, 211, 206, 18, 187, 1, 206, 19, 187, 230, 229, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -875,14 +684,6 @@ intersect: aRectangle
 		corner: (corner min: aRectangle corner)
 
 """
-    compiler.context.literals = [
-      .symbolConstant("origin:corner:"),
-      .stringVariable("Rectangle", "Rectangle"),
-      .symbolConstant("max:"),
-      .symbolConstant("origin"),
-      .symbolConstant("min:"),
-      .symbolConstant("corner")
-    ]
     // 15 .. 25
     let expected = [65, 0, 16, 211, 226, 1, 16, 213, 228, 240, 124]
     try runningSource(source, expecting: expected)
@@ -894,9 +695,6 @@ copy
 	^self deepCopy
 
 """
-    compiler.context.literals = [
-      .symbolConstant("deepCopy")
-    ]
     // 5 .. 7
     let expected = [112, 208, 124]
     try runningSource(source, expecting: expected)

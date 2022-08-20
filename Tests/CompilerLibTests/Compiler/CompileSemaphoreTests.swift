@@ -30,9 +30,6 @@ initSignals
 
 	excessSignals _ 0
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [117, 98, 120]
     try runningSource(source, expecting: expected)
@@ -51,10 +48,6 @@ critical: mutuallyExcludedBlock
 	self signal.
 	^blockValue
 """
-    compiler.context.literals = [
-      .symbolConstant("wait"),
-      .symbolConstant("signal")
-    ]
     // 7 .. 17
     let expected = [112, 208, 135, 16, 201, 105, 112, 209, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -75,11 +68,6 @@ wait
 		ifTrue: [excessSignals _ excessSignals-1]
 		ifFalse: [self addLastLink: Processor activeProcess suspend]"
 """
-    compiler.context.literals = [
-      .symbolConstant("primitiveFailed"),
-      .intConstant("86"),
-      .stringVariable("Semaphore", "Semaphore")
-    ]
     // 9 .. 12
     let expected = [112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -100,11 +88,6 @@ signal
 		ifTrue: [excessSignals _ excessSignals+1]
 		ifFalse: [Processor resume: self removeFirstLink]"
 """
-    compiler.context.literals = [
-      .symbolConstant("primitiveFailed"),
-      .intConstant("85"),
-      .stringVariable("Semaphore", "Semaphore")
-    ]
     // 9 .. 12
     let expected = [112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -116,11 +99,6 @@ terminateProcess
 	self isEmpty
 		ifFalse: [self removeFirst terminate]
 """
-    compiler.context.literals = [
-      .symbolConstant("terminate"),
-      .symbolConstant("removeFirst"),
-      .symbolConstant("isEmpty")
-    ]
     // 9 .. 17
     let expected = [112, 210, 168, 4, 112, 209, 208, 135, 120]
     try runningSource(source, expecting: expected)

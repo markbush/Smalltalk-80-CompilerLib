@@ -29,10 +29,6 @@ errorFirstObject
 	self error: 'specified object is first object'
 
 """
-    compiler.context.literals = [
-      .symbolConstant("error:"),
-      .stringConstant("specified object is first object")
-    ]
     // 7 .. 11
     let expected = [112, 33, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -50,11 +46,6 @@ reverse
 	^newCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("reverseDo:"),
-      .symbolConstant("add:")
-    ]
     // 9 .. 27
     let expected = [112, 208, 204, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 226, 125, 225, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -70,10 +61,6 @@ last
 	^self basicAt: lastIndex
 
 """
-    compiler.context.literals = [
-      .symbolConstant("emptyCheck"),
-      .symbolConstant("basicAt:")
-    ]
     // 7 .. 13
     let expected = [112, 208, 135, 112, 1, 225, 124]
     try runningSource(source, expecting: expected)
@@ -85,9 +72,6 @@ size
 	^lastIndex - firstIndex + 1
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 8
     let expected = [1, 0, 177, 118, 176, 124]
     try runningSource(source, expecting: expected)
@@ -115,12 +99,6 @@ removeAllSuchThat: aBlock
 	^newCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("add:"),
-      .symbolConstant("removeIndex:")
-    ]
     // 11 .. 47
     let expected = [112, 208, 204, 107, 0, 105, 17, 1, 180, 172, 24, 112, 17, 225, 106, 16, 18, 202, 159, 19, 18, 226, 135, 112, 17, 227, 148, 17, 118, 176, 129, 65, 135, 163, 227, 19, 124]
     try runningSource(source, expecting: expected)
@@ -136,10 +114,6 @@ first
 	^self basicAt: firstIndex
 
 """
-    compiler.context.literals = [
-      .symbolConstant("emptyCheck"),
-      .symbolConstant("basicAt:")
-    ]
     // 7 .. 13
     let expected = [112, 208, 135, 112, 0, 225, 124]
     try runningSource(source, expecting: expected)
@@ -158,9 +132,6 @@ do: aBlock
 			index _ index + 1]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("basicAt:")
-    ]
     // 5 .. 24
     let expected = [0, 105, 17, 1, 180, 172, 12, 16, 112, 17, 224, 202, 135, 17, 118, 176, 105, 163, 239, 120]
     try runningSource(source, expecting: expected)
@@ -180,11 +151,6 @@ removeFirst
 	^firstObject
 
 """
-    compiler.context.literals = [
-      .symbolConstant("emptyCheck"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("basicAt:put:")
-    ]
     // 9 .. 26
     let expected = [112, 208, 135, 112, 0, 225, 104, 112, 0, 115, 242, 135, 0, 118, 176, 96, 16, 124]
     try runningSource(source, expecting: expected)
@@ -202,10 +168,6 @@ copyWithout: oldElement
 	^newCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("add:")
-    ]
     // 7 .. 33
     let expected = [112, 208, 112, 194, 205, 105, 112, 137, 118, 200, 164, 11, 106, 16, 18, 182, 153, 115, 146, 17, 18, 225, 125, 203, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -223,10 +185,6 @@ find: oldObject
 		ifFalse: [self errorNotFound]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("basicAt:"),
-      .symbolConstant("errorNotFound")
-    ]
     // 7 .. 36
     let expected = [0, 105, 17, 1, 180, 157, 16, 112, 17, 224, 183, 144, 114, 157, 17, 118, 176, 105, 163, 238, 17, 1, 180, 153, 17, 124, 112, 209, 135, 120]
     try runningSource(source, expecting: expected)
@@ -265,12 +223,6 @@ copyReplaceFrom: start to: stop with: replacementCollection
 	^newOrderedCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("errorOutOfBounds"),
-      .symbolConstant("species"),
-      .symbolConstant("to:do:"),
-      .symbolConstant("add:")
-    ]
     // 11 .. 136
     let expected = [117, 108, 16, 130, 72, 17, 130, 73, 16, 118, 178, 158, 117, 129, 73, 129, 72, 164, 39, 24, 112, 194, 179, 172, 10, 112, 194, 118, 176, 129, 73, 129, 72, 164, 23, 25, 24, 118, 177, 178, 153, 113, 147, 25, 112, 194, 179, 154, 112, 208, 135, 25, 24, 177, 118, 176, 129, 68, 135, 112, 209, 112, 194, 18, 194, 176, 20, 177, 205, 107, 118, 24, 118, 177, 137, 118, 200, 164, 7, 110, 19, 112, 22, 192, 227, 125, 242, 135, 118, 18, 194, 137, 118, 200, 164, 7, 110, 19, 18, 22, 192, 227, 125, 242, 135, 25, 118, 176, 112, 194, 137, 118, 200, 164, 7, 110, 19, 112, 22, 192, 227, 125, 242, 135, 19, 124]
     try runningSource(source, expecting: expected)
@@ -287,10 +239,6 @@ addFirst: newObject
 	^newObject
 
 """
-    compiler.context.literals = [
-      .symbolConstant("makeRoomAtFirst"),
-      .symbolConstant("basicAt:put:")
-    ]
     // 7 .. 24
     let expected = [0, 118, 182, 154, 112, 208, 135, 0, 118, 177, 96, 112, 0, 16, 241, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -304,9 +252,6 @@ copyEmpty
 	^self species new
 
 """
-    compiler.context.literals = [
-      .symbolConstant("species")
-    ]
     // 5 .. 8
     let expected = [112, 208, 204, 124]
     try runningSource(source, expecting: expected)
@@ -324,12 +269,6 @@ grow
 	self become: newSelf
 
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("growSize"),
-      .symbolConstant("addLast:"),
-      .symbolConstant("become:")
-    ]
     // 11 .. 37
     let expected = [112, 208, 112, 194, 112, 209, 176, 205, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 226, 125, 203, 135, 112, 16, 227, 135, 120]
     try runningSource(source, expecting: expected)
@@ -348,10 +287,6 @@ collect: aBlock
 	^newCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("add:")
-    ]
     // 7 .. 27
     let expected = [112, 208, 204, 105, 112, 137, 118, 200, 164, 7, 106, 17, 16, 18, 202, 225, 125, 203, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -363,9 +298,6 @@ add: newObject
 	^self addLast: newObject
 
 """
-    compiler.context.literals = [
-      .symbolConstant("addLast:")
-    ]
     // 5 .. 8
     let expected = [112, 16, 224, 124]
     try runningSource(source, expecting: expected)
@@ -379,9 +311,6 @@ addAll: anOrderedCollection
 	^self addAllLast: anOrderedCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("addAllLast:")
-    ]
     // 5 .. 8
     let expected = [112, 16, 224, 124]
     try runningSource(source, expecting: expected)
@@ -393,10 +322,6 @@ errorNotFound
 	self error: 'element not found'
 
 """
-    compiler.context.literals = [
-      .symbolConstant("error:"),
-      .stringConstant("element not found")
-    ]
     // 7 .. 11
     let expected = [112, 33, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -417,10 +342,6 @@ remove: oldObject ifAbsent: absentBlock
 	^absentBlock value
 
 """
-    compiler.context.literals = [
-      .symbolConstant("removeIndex:"),
-      .symbolConstant("basicAt:")
-    ]
     // 7 .. 36
     let expected = [0, 106, 18, 1, 180, 172, 20, 16, 112, 18, 225, 182, 157, 112, 18, 224, 135, 16, 124, 18, 118, 176, 129, 66, 135, 163, 231, 17, 201, 124]
     try runningSource(source, expecting: expected)
@@ -437,11 +358,6 @@ at: anInteger
 		ifFalse: [^super at: anInteger + firstIndex - 1]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("at:"),
-      .symbolConstant("errorNoSuchElement"),
-      .stringVariable("OrderedCollection", "OrderedCollection")
-    ]
     // 9 .. 37
     let expected = [16, 118, 178, 153, 113, 150, 16, 0, 176, 118, 177, 1, 179, 155, 112, 209, 164, 9, 112, 16, 0, 176, 118, 177, 133, 32, 124, 135, 120]
     try runningSource(source, expecting: expected)
@@ -461,12 +377,6 @@ at: anInteger put: anObject
 		ifFalse: [^super at: index + firstIndex - 1 put: anObject]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("truncated"),
-      .symbolConstant("at:put:"),
-      .symbolConstant("errorNoSuchElement"),
-      .stringVariable("OrderedCollection", "OrderedCollection")
-    ]
     // 11 .. 43
     let expected = [16, 208, 106, 18, 118, 178, 153, 113, 150, 18, 0, 176, 118, 177, 1, 179, 155, 112, 210, 164, 10, 112, 18, 0, 176, 118, 177, 17, 133, 65, 124, 135, 120]
     try runningSource(source, expecting: expected)
@@ -484,10 +394,6 @@ copyWith: newElement
 	^newCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("copy"),
-      .symbolConstant("add:")
-    ]
     // 7 .. 15
     let expected = [112, 208, 105, 17, 16, 225, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -500,10 +406,6 @@ setIndices
 	lastIndex _ firstIndex - 1 max: 0
 
 """
-    compiler.context.literals = [
-      .symbolConstant("max:"),
-      .symbolConstant("basicSize")
-    ]
     // 7 .. 20
     let expected = [112, 209, 119, 189, 118, 224, 96, 0, 118, 177, 117, 224, 97, 120]
     try runningSource(source, expecting: expected)
@@ -522,9 +424,6 @@ reverseDo: aBlock
 			index _ index - 1]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("basicAt:")
-    ]
     // 5 .. 24
     let expected = [1, 105, 17, 0, 181, 172, 12, 16, 112, 17, 224, 202, 135, 17, 118, 177, 105, 163, 239, 120]
     try runningSource(source, expecting: expected)
@@ -541,11 +440,6 @@ addLast: newObject
 	^newObject
 
 """
-    compiler.context.literals = [
-      .symbolConstant("makeRoomAtLast"),
-      .symbolConstant("basicSize"),
-      .symbolConstant("basicAt:put:")
-    ]
     // 9 .. 27
     let expected = [1, 112, 209, 182, 154, 112, 208, 135, 1, 118, 176, 97, 112, 1, 16, 242, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -570,11 +464,6 @@ insert: anObject before: spot
 	^anObject
 
 """
-    compiler.context.literals = [
-      .symbolConstant("makeRoomAtFirst"),
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("basicAt:")
-    ]
     // 9 .. 60
     let expected = [17, 108, 20, 0, 177, 107, 0, 118, 182, 158, 112, 208, 135, 0, 19, 176, 108, 0, 118, 177, 129, 0, 106, 18, 20, 118, 177, 178, 172, 15, 112, 18, 112, 18, 118, 176, 226, 241, 135, 18, 118, 176, 106, 163, 234, 112, 18, 16, 241, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -586,10 +475,6 @@ errorLastObject
 	self error: 'specified object is last object'
 
 """
-    compiler.context.literals = [
-      .symbolConstant("error:"),
-      .stringConstant("specified object is last object")
-    ]
     // 7 .. 11
     let expected = [112, 33, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -616,12 +501,6 @@ makeRoomAtFirst
 	lastIndex _ self basicSize
 
 """
-    compiler.context.literals = [
-      .symbolConstant("basicSize"),
-      .symbolConstant("grow"),
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("basicAt:")
-    ]
     // 11 .. 82
     let expected = [112, 208, 112, 194, 177, 104, 16, 117, 182, 172, 9, 112, 209, 135, 112, 208, 112, 194, 177, 104, 1, 112, 208, 182, 152, 120, 112, 208, 105, 17, 16, 179, 172, 30, 112, 17, 112, 17, 16, 177, 0, 176, 118, 177, 227, 242, 135, 112, 17, 16, 177, 0, 176, 118, 177, 115, 242, 135, 17, 118, 177, 105, 163, 221, 16, 118, 176, 96, 112, 208, 97, 120]
     try runningSource(source, expecting: expected)
@@ -640,11 +519,6 @@ copyFrom: startIndex to: endIndex
 	^targetCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("to:do:"),
-      .symbolConstant("add:")
-    ]
     // 9 .. 44
     let expected = [17, 16, 178, 156, 112, 208, 117, 205, 124, 112, 208, 17, 118, 176, 16, 177, 205, 106, 16, 17, 137, 118, 200, 164, 7, 107, 18, 112, 19, 192, 226, 125, 241, 135, 18, 124]
     try runningSource(source, expecting: expected)
@@ -662,10 +536,6 @@ add: newObject before: oldObject
 	^newObject
 
 """
-    compiler.context.literals = [
-      .symbolConstant("find:"),
-      .symbolConstant("insert:before:")
-    ]
     // 7 .. 17
     let expected = [112, 17, 224, 106, 112, 16, 18, 241, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -684,10 +554,6 @@ select: aBlock
 	^newCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("copyEmpty"),
-      .symbolConstant("add:")
-    ]
     // 7 .. 30
     let expected = [112, 208, 105, 112, 137, 118, 200, 164, 11, 106, 16, 18, 202, 155, 17, 18, 225, 144, 115, 125, 203, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -706,10 +572,6 @@ removeIndex: removedIndex
 	lastIndex _ lastIndex - 1
 
 """
-    compiler.context.literals = [
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("basicAt:")
-    ]
     // 7 .. 38
     let expected = [16, 105, 17, 1, 178, 172, 15, 112, 17, 112, 17, 118, 176, 225, 240, 135, 17, 118, 176, 105, 163, 236, 112, 1, 115, 240, 135, 1, 118, 177, 97, 120]
     try runningSource(source, expecting: expected)
@@ -728,11 +590,6 @@ before: oldObject
 		ifFalse: [^self basicAt: index - 1]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("find:"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("errorFirstObject")
-    ]
     // 9 .. 25
     let expected = [112, 16, 224, 105, 17, 0, 182, 154, 112, 210, 124, 112, 17, 118, 177, 225, 124]
     try runningSource(source, expecting: expected)
@@ -744,10 +601,6 @@ errorNoSuchElement
 	self error: 'attempt to index non-existent element in an ordered collection'
 
 """
-    compiler.context.literals = [
-      .symbolConstant("error:"),
-      .stringConstant("attempt to index non-existent element in an ordered collection")
-    ]
     // 7 .. 11
     let expected = [112, 33, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -766,11 +619,6 @@ after: oldObject
 		ifFalse: [^self basicAt: index + 1]
 
 """
-    compiler.context.literals = [
-      .symbolConstant("find:"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("errorLastObject")
-    ]
     // 9 .. 25
     let expected = [112, 16, 224, 105, 17, 1, 182, 154, 112, 210, 124, 112, 17, 118, 176, 225, 124]
     try runningSource(source, expecting: expected)
@@ -794,12 +642,6 @@ makeRoomAtLast
 	lastIndex _ newLast
 
 """
-    compiler.context.literals = [
-      .symbolConstant("grow"),
-      .symbolConstant("basicSize"),
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("basicAt:")
-    ]
     // 11 .. 67
     let expected = [112, 194, 105, 112, 209, 112, 194, 177, 117, 182, 154, 112, 208, 135, 0, 118, 182, 152, 120, 118, 104, 16, 17, 180, 172, 26, 112, 16, 112, 16, 0, 176, 118, 177, 227, 242, 135, 112, 16, 0, 176, 118, 177, 115, 242, 135, 16, 118, 176, 104, 163, 225, 118, 96, 17, 97, 120]
     try runningSource(source, expecting: expected)
@@ -815,10 +657,6 @@ addAllFirst: anOrderedCollection
 	^anOrderedCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("reverseDo:"),
-      .symbolConstant("addFirst:")
-    ]
     // 7 .. 21
     let expected = [16, 137, 118, 200, 164, 5, 105, 112, 17, 225, 125, 224, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -838,11 +676,6 @@ removeLast
 	^lastObject
 
 """
-    compiler.context.literals = [
-      .symbolConstant("emptyCheck"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("basicAt:put:")
-    ]
     // 9 .. 26
     let expected = [112, 208, 135, 112, 1, 225, 104, 112, 1, 115, 242, 135, 1, 118, 177, 97, 16, 124]
     try runningSource(source, expecting: expected)
@@ -860,10 +693,6 @@ add: newObject after: oldObject
 	^newObject
 
 """
-    compiler.context.literals = [
-      .symbolConstant("find:"),
-      .symbolConstant("insert:before:")
-    ]
     // 7 .. 19
     let expected = [112, 17, 224, 106, 112, 16, 18, 118, 176, 241, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -879,9 +708,6 @@ addAllLast: anOrderedCollection
 	^anOrderedCollection
 
 """
-    compiler.context.literals = [
-      .symbolConstant("addLast:")
-    ]
     // 5 .. 19
     let expected = [16, 137, 118, 200, 164, 5, 105, 112, 17, 224, 125, 203, 135, 16, 124]
     try runningSource(source, expecting: expected)

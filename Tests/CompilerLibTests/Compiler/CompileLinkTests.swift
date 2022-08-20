@@ -29,9 +29,6 @@ nextLink: aLink
 	"Store the argument, as the Link to which the receiver refers."
 	^nextLink _ aLink
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 6
     let expected = [16, 129, 0, 124]
     try runningSource(source, expecting: expected)

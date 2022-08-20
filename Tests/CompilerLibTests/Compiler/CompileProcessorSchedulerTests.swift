@@ -31,9 +31,6 @@ timingPriority
 
 	^TimingPriority
 """
-    compiler.context.literals = [
-      .stringVariable("TimingPriority", "8")
-    ]
     // 5 .. 6
     let expected = [64, 124]
     try runningSource(source, expecting: expected)
@@ -46,9 +43,6 @@ highestPriority
 
 	^quiescentProcessLists size
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [0, 194, 124]
     try runningSource(source, expecting: expected)
@@ -63,9 +57,6 @@ lowIOPriority
 
 	^LowIOPriority
 """
-    compiler.context.literals = [
-      .stringVariable("LowIOPriority", "6")
-    ]
     // 5 .. 6
     let expected = [64, 124]
     try runningSource(source, expecting: expected)
@@ -78,9 +69,6 @@ userSchedulingPriority
 
 	^UserSchedulingPriority
 """
-    compiler.context.literals = [
-      .stringVariable("UserSchedulingPriority", "4")
-    ]
     // 5 .. 6
     let expected = [64, 124]
     try runningSource(source, expecting: expected)
@@ -95,9 +83,6 @@ highIOPriority
 
 	^HighIOPriority
 """
-    compiler.context.literals = [
-      .stringVariable("HighIOPriority", "7")
-    ]
     // 5 .. 6
     let expected = [64, 124]
     try runningSource(source, expecting: expected)
@@ -111,11 +96,6 @@ suspendFirstAt: aPriority
 	^self suspendFirstAt: aPriority
 		  ifNone: [self error: 'No Process to suspend']
 """
-    compiler.context.literals = [
-      .symbolConstant("suspendFirstAt:ifNone:"),
-      .symbolConstant("error:"),
-      .stringConstant("No Process to suspend")
-    ]
     // 9 .. 21
     let expected = [112, 16, 137, 117, 200, 164, 4, 112, 34, 225, 125, 240, 124]
     try runningSource(source, expecting: expected)
@@ -134,11 +114,6 @@ signal: aSemaphore atMilliseconds: milliseconds
 	<primitive: 100>
 	self primitiveFailed
 """
-    compiler.context.literals = [
-      .symbolConstant("primitiveFailed"),
-      .intConstant("612"),
-      .stringVariable("ProcessorScheduler", "ProcessorScheduler")
-    ]
     // 9 .. 12
     let expected = [112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -161,18 +136,6 @@ highestPriority: newHighestPriority
 		[:priority | newProcessLists at: priority put: LinkedList new].
 	quiescentProcessLists become: newProcessLists
 """
-    compiler.context.literals = [
-      .symbolConstant("error:"),
-      .symbolConstant(","),
-      .stringConstant("There are processes with priority higher than "),
-      .symbolConstant("printString"),
-      .symbolConstant("anyProcessesAbove:"),
-      .stringVariable("Array", "Array"),
-      .symbolConstant("to:do:"),
-      .symbolConstant("min:"),
-      .stringVariable("LinkedList", "LinkedList"),
-      .symbolConstant("become:")
-    ]
     // 23 .. 88
     let expected = [0, 194, 16, 179, 155, 112, 16, 228, 144, 114, 158, 112, 34, 16, 211, 225, 224, 135, 69, 16, 205, 106, 118, 0, 194, 18, 194, 231, 137, 118, 200, 164, 8, 107, 18, 19, 0, 19, 192, 193, 125, 246, 135, 0, 194, 18, 194, 137, 118, 200, 164, 7, 107, 18, 19, 72, 204, 193, 125, 246, 135, 0, 18, 233, 135, 120]
     try runningSource(source, expecting: expected)
@@ -185,9 +148,6 @@ userBackgroundPriority
 
 	^UserBackgroundPriority
 """
-    compiler.context.literals = [
-      .stringVariable("UserBackgroundPriority", "3")
-    ]
     // 5 .. 6
     let expected = [64, 124]
     try runningSource(source, expecting: expected)
@@ -205,11 +165,6 @@ suspendFirstAt: aPriority ifNone: noneBlock
 		ifTrue: [^noneBlock value]
 		ifFalse: [^aList first suspend]
 """
-    compiler.context.literals = [
-      .symbolConstant("suspend"),
-      .symbolConstant("first"),
-      .symbolConstant("isEmpty")
-    ]
     // 9 .. 22
     let expected = [0, 16, 192, 106, 18, 210, 154, 17, 201, 124, 18, 209, 208, 124]
     try runningSource(source, expecting: expected)
@@ -222,13 +177,6 @@ anyProcessesAbove: highestPriority
 
 	^(Process allInstances select: [:aProcess | aProcess priority > highestPriority]) isEmpty
 """
-    compiler.context.literals = [
-      .symbolConstant("isEmpty"),
-      .symbolConstant("select:"),
-      .symbolConstant("allInstances"),
-      .stringVariable("Process", "Process"),
-      .symbolConstant("priority")
-    ]
     // 13 .. 28
     let expected = [67, 210, 137, 118, 200, 164, 6, 105, 17, 212, 16, 179, 125, 225, 208, 124]
     try runningSource(source, expecting: expected)
@@ -242,9 +190,6 @@ systemBackgroundPriority
 
 	^SystemBackgroundPriority
 """
-    compiler.context.literals = [
-      .stringVariable("SystemBackgroundPriority", "2")
-    ]
     // 5 .. 6
     let expected = [64, 124]
     try runningSource(source, expecting: expected)
@@ -260,9 +205,6 @@ userInterruptPriority
 
 	^UserInterruptPriority
 """
-    compiler.context.literals = [
-      .stringVariable("UserInterruptPriority", "5")
-    ]
     // 5 .. 6
     let expected = [64, 124]
     try runningSource(source, expecting: expected)
@@ -278,12 +220,6 @@ yield
 	[semaphore signal] fork.
 	semaphore wait
 """
-    compiler.context.literals = [
-      .stringVariable("Semaphore", "Semaphore"),
-      .symbolConstant("fork"),
-      .symbolConstant("signal"),
-      .symbolConstant("wait")
-    ]
     // 11 .. 27
     let expected = [64, 204, 104, 137, 117, 200, 164, 3, 16, 210, 125, 209, 135, 16, 211, 135, 120]
     try runningSource(source, expecting: expected)
@@ -296,9 +232,6 @@ terminateActive
 
 	activeProcess terminate
 """
-    compiler.context.literals = [
-      .symbolConstant("terminate")
-    ]
     // 5 .. 8
     let expected = [1, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -320,17 +253,6 @@ signal: aSemaphore atTime: timeInterval
 	milliseconds at: 4 put: (timeInterval digitAt: 4).
 	^self signal: aSemaphore atMilliseconds: milliseconds
 """
-    compiler.context.literals = [
-      .symbolConstant("error:"),
-      .stringConstant("Can't convert time to double word"),
-      .symbolConstant("negative"),
-      .symbolConstant("digitLength"),
-      .intConstant("4"),
-      .stringVariable("ByteArray", "ByteArray"),
-      .symbolConstant("digitAt:"),
-      .intConstant("3"),
-      .symbolConstant("signal:atMilliseconds:")
-    ]
     // 21 .. 71
     let expected = [17, 211, 36, 179, 153, 113, 145, 17, 210, 155, 112, 33, 224, 135, 69, 36, 205, 106, 18, 118, 17, 118, 230, 193, 135, 18, 119, 17, 119, 230, 193, 135, 18, 39, 17, 39, 230, 193, 135, 18, 36, 17, 36, 230, 193, 135, 112, 16, 18, 248, 124]
     try runningSource(source, expecting: expected)
@@ -346,10 +268,6 @@ remove: aProcess ifAbsent: aBlock
 		remove: aProcess ifAbsent: aBlock.
 	^aProcess
 """
-    compiler.context.literals = [
-      .symbolConstant("remove:ifAbsent:"),
-      .symbolConstant("priority")
-    ]
     // 7 .. 16
     let expected = [0, 16, 209, 192, 16, 17, 240, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -362,9 +280,6 @@ activePriority
 
 	^activeProcess priority
 """
-    compiler.context.literals = [
-      .symbolConstant("priority")
-    ]
     // 5 .. 7
     let expected = [1, 208, 124]
     try runningSource(source, expecting: expected)

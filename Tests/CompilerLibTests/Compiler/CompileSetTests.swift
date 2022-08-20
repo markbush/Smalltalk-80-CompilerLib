@@ -40,12 +40,6 @@ fixCollisionsFrom: index
 					[self basicAt: nextIndex put: nextObject.
 					self basicAt: oldIndex put: nil]]
 """
-    compiler.context.literals = [
-      .symbolConstant("basicSize"),
-      .symbolConstant("findElementOrNil:"),
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("basicAt:")
-    ]
     // 11 .. 52
     let expected = [16, 106, 112, 208, 105, 18, 17, 186, 118, 176, 106, 112, 18, 227, 108, 20, 115, 198, 168, 21, 112, 20, 225, 107, 19, 18, 182, 168, 10, 112, 19, 20, 242, 135, 112, 18, 115, 242, 135, 163, 220, 120]
     try runningSource(source, expecting: expected)
@@ -58,10 +52,6 @@ atNewIndex: index put: anObject
 	tally _ tally + 1.
 	self fullCheck
 """
-    compiler.context.literals = [
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("fullCheck")
-    ]
     // 7 .. 19
     let expected = [112, 16, 17, 240, 135, 0, 118, 176, 96, 112, 209, 135, 120]
     try runningSource(source, expecting: expected)
@@ -74,10 +64,6 @@ noCheckAdd: anObject
 		put: anObject.
 	tally _ tally + 1
 """
-    compiler.context.literals = [
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("findElementOrNil:")
-    ]
     // 7 .. 18
     let expected = [112, 112, 16, 225, 16, 240, 135, 0, 118, 176, 96, 120]
     try runningSource(source, expecting: expected)
@@ -91,12 +77,6 @@ rehash
 	self do: [:each | newSelf noCheckAdd: each].
 	self become: newSelf
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("basicSize"),
-      .symbolConstant("noCheckAdd:"),
-      .symbolConstant("become:")
-    ]
     // 11 .. 34
     let expected = [112, 208, 112, 209, 205, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 226, 125, 203, 135, 112, 16, 227, 135, 120]
     try runningSource(source, expecting: expected)
@@ -111,10 +91,6 @@ find: anObject ifAbsent: aBlock
 		ifTrue: [^aBlock value]
 		ifFalse: [^index]
 """
-    compiler.context.literals = [
-      .symbolConstant("findElementOrNil:"),
-      .symbolConstant("basicAt:")
-    ]
     // 7 .. 21
     let expected = [112, 16, 224, 106, 112, 18, 225, 115, 198, 154, 17, 201, 124, 18, 124]
     try runningSource(source, expecting: expected)
@@ -125,11 +101,6 @@ find: anObject ifAbsent: aBlock
 fullCheck
 	self basicSize - self size <= (self basicSize // 4) ifTrue: [self grow]
 """
-    compiler.context.literals = [
-      .symbolConstant("grow"),
-      .symbolConstant("basicSize"),
-      .intConstant("4")
-    ]
     // 9 .. 23
     let expected = [112, 209, 112, 194, 177, 112, 209, 34, 189, 180, 154, 112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -151,13 +122,6 @@ findElementOrNil: anObject
 					pass > 2 ifTrue: [^self grow findElementOrNil: anObject]]].
 	^index
 """
-    compiler.context.literals = [
-      .symbolConstant("basicSize"),
-      .symbolConstant("hash"),
-      .symbolConstant("findElementOrNil:"),
-      .symbolConstant("grow"),
-      .symbolConstant("basicAt:")
-    ]
     // 13 .. 67
     let expected = [112, 208, 106, 118, 108, 16, 209, 18, 186, 118, 176, 105, 112, 17, 228, 129, 67, 115, 198, 153, 113, 146, 19, 16, 182, 168, 26, 17, 118, 176, 129, 65, 18, 179, 172, 15, 118, 105, 20, 118, 176, 108, 20, 119, 179, 156, 112, 211, 16, 226, 124, 163, 215, 17, 124]
     try runningSource(source, expecting: expected)
@@ -168,9 +132,6 @@ findElementOrNil: anObject
 setTally
 	tally _ 0
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [117, 96, 120]
     try runningSource(source, expecting: expected)
@@ -185,11 +146,6 @@ add: newObject
 	(self basicAt: index) == nil ifTrue: [self atNewIndex: index put: newObject].
 	^newObject
 """
-    compiler.context.literals = [
-      .symbolConstant("findElementOrNil:"),
-      .symbolConstant("atNewIndex:put:"),
-      .symbolConstant("basicAt:")
-    ]
     // 9 .. 31
     let expected = [16, 115, 198, 153, 16, 124, 112, 16, 224, 105, 112, 17, 226, 115, 198, 156, 112, 17, 16, 241, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -212,12 +168,6 @@ collect: aBlock
 			[newSet add: (aBlock value: element)]].
 	^newSet
 """
-    compiler.context.literals = [
-      .stringVariable("Set", "Set"),
-      .symbolConstant("basicSize"),
-      .symbolConstant("add:"),
-      .symbolConstant("basicAt:")
-    ]
     // 11 .. 55
     let expected = [0, 117, 182, 155, 64, 119, 205, 124, 64, 112, 209, 129, 66, 205, 105, 117, 107, 19, 118, 176, 129, 67, 18, 180, 172, 17, 112, 19, 227, 129, 68, 115, 198, 168, 6, 17, 16, 20, 202, 226, 135, 163, 230, 17, 124]
     try runningSource(source, expecting: expected)
@@ -231,10 +181,6 @@ swap: oneElement with: otherElement
 	self basicAt: oneElement put: (self basicAt: otherElement).
 	self basicAt: otherElement put: save
 """
-    compiler.context.literals = [
-      .symbolConstant("basicAt:"),
-      .symbolConstant("basicAt:put:")
-    ]
     // 7 .. 23
     let expected = [112, 16, 224, 106, 112, 16, 112, 17, 224, 241, 135, 112, 17, 18, 241, 135, 120]
     try runningSource(source, expecting: expected)
@@ -250,13 +196,6 @@ grow
 	self do: [:each | newSelf noCheckAdd: each].
 	self become: newSelf
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("basicSize"),
-      .symbolConstant("growSize"),
-      .symbolConstant("noCheckAdd:"),
-      .symbolConstant("become:")
-    ]
     // 13 .. 39
     let expected = [112, 208, 112, 209, 112, 210, 176, 205, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 227, 125, 203, 135, 112, 16, 228, 135, 120]
     try runningSource(source, expecting: expected)
@@ -267,9 +206,6 @@ grow
 at: index
 	self errorNotKeyed
 """
-    compiler.context.literals = [
-      .symbolConstant("errorNotKeyed")
-    ]
     // 5 .. 8
     let expected = [112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -280,9 +216,6 @@ at: index
 at: index put: anObject
 	self errorNotKeyed
 """
-    compiler.context.literals = [
-      .symbolConstant("errorNotKeyed")
-    ]
     // 5 .. 8
     let expected = [112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -295,9 +228,6 @@ occurrencesOf: anObject
 		ifTrue: [^1]
 		ifFalse: [^0]
 """
-    compiler.context.literals = [
-      .symbolConstant("includes:")
-    ]
     // 5 .. 12
     let expected = [112, 16, 224, 153, 118, 124, 117, 124]
     try runningSource(source, expecting: expected)
@@ -313,11 +243,6 @@ remove: oldObject ifAbsent: aBlock
 	self fixCollisionsFrom: index.
 	^oldObject
 """
-    compiler.context.literals = [
-      .symbolConstant("find:ifAbsent:"),
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("fixCollisionsFrom:")
-    ]
     // 9 .. 35
     let expected = [112, 16, 137, 117, 200, 164, 3, 17, 201, 124, 240, 106, 112, 18, 115, 241, 135, 0, 118, 177, 96, 112, 18, 226, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -328,11 +253,6 @@ remove: oldObject ifAbsent: aBlock
 includes: anObject
 	^(self basicAt: (self findElementOrNil: anObject)) ~~ nil
 """
-    compiler.context.literals = [
-      .symbolConstant("~~"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("findElementOrNil:")
-    ]
     // 9 .. 16
     let expected = [112, 112, 16, 226, 225, 115, 224, 124]
     try runningSource(source, expecting: expected)
@@ -346,11 +266,6 @@ do: aBlock
 		[:index |
 		(self basicAt: index) == nil ifFalse: [aBlock value: (self basicAt: index)]]
 """
-    compiler.context.literals = [
-      .symbolConstant("to:do:"),
-      .symbolConstant("basicSize"),
-      .symbolConstant("basicAt:")
-    ]
     // 9 .. 39
     let expected = [0, 117, 182, 152, 120, 118, 112, 209, 137, 118, 200, 164, 15, 105, 112, 17, 226, 115, 198, 153, 115, 148, 16, 112, 17, 226, 202, 125, 240, 135, 120]
     try runningSource(source, expecting: expected)

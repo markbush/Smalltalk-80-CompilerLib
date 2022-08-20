@@ -29,9 +29,6 @@ final class CompileLookupKeyTests: XCTestCase {
 hash
 	^key hash
 """
-    compiler.context.literals = [
-      .symbolConstant("hash")
-    ]
     // 5 .. 7
     let expected = [0, 208, 124]
     try runningSource(source, expecting: expected)
@@ -43,9 +40,6 @@ hashMappedBy: map
 	"Answer what my hash would be if oops changed according to map"
 	^ key hashMappedBy: map
 """
-    compiler.context.literals = [
-      .symbolConstant("hashMappedBy:")
-    ]
     // 5 .. 8
     let expected = [0, 16, 224, 124]
     try runningSource(source, expecting: expected)
@@ -57,9 +51,6 @@ key: anObject
 	"Store the argument, anObject, as the lookup key of the receiver."
 	key _ anObject
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 5
     let expected = [16, 96, 120]
     try runningSource(source, expecting: expected)
@@ -70,9 +61,6 @@ key: anObject
 printOn: aStream
 	key printOn: aStream
 """
-    compiler.context.literals = [
-      .symbolConstant("printOn:")
-    ]
     // 5 .. 9
     let expected = [0, 16, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -83,9 +71,6 @@ printOn: aStream
 < aLookupKey
 	^key < aLookupKey key
 """
-    compiler.context.literals = [
-      .symbolConstant("key")
-    ]
     // 5 .. 9
     let expected = [0, 16, 208, 178, 124]
     try runningSource(source, expecting: expected)
@@ -98,10 +83,6 @@ printOn: aStream
 		ifTrue: [^key = aLookupKey key]
 		ifFalse: [^false]
 """
-    compiler.context.literals = [
-      .symbolConstant("key"),
-      .symbolConstant("species")
-    ]
     // 7 .. 18
     let expected = [112, 209, 16, 209, 182, 156, 0, 16, 208, 182, 124, 122]
     try runningSource(source, expecting: expected)

@@ -29,9 +29,6 @@ add: newObject
 	self shouldNotImplement
 
 """
-    compiler.context.literals = [
-      .symbolConstant("shouldNotImplement")
-    ]
     // 5 .. 8
     let expected = [112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -49,11 +46,6 @@ size
 	^self basicSize
 
 """
-    compiler.context.literals = [
-      .symbolConstant("basicSize"),
-      .intConstant("62"),
-      .stringVariable("ArrayedCollection", "ArrayedCollection")
-    ]
     // 9 .. 11
     let expected = [112, 208, 124]
     try runningSource(source, expecting: expected)
@@ -80,15 +72,6 @@ storeElementsFrom: firstIndex to: lastIndex on: aStream
 	^noneYet
 
 """
-    compiler.context.literals = [
-      .symbolConstant("defaultElement"),
-      .symbolConstant("to:do:"),
-      .characterConstant(";"),
-      .symbolConstant("nextPutAll:"),
-      .stringConstant(" at: "),
-      .symbolConstant("store:"),
-      .stringConstant(" put: ")
-    ]
     // 17 .. 70
     let expected = [113, 107, 112, 208, 108, 16, 17, 137, 118, 200, 164, 38, 110, 112, 22, 192, 109, 21, 20, 182, 154, 115, 164, 25, 19, 155, 114, 129, 67, 146, 18, 34, 196, 135, 18, 36, 227, 135, 18, 22, 229, 135, 18, 38, 227, 135, 18, 21, 229, 125, 241, 135, 19, 124]
     try runningSource(source, expecting: expected)
@@ -100,9 +83,6 @@ defaultElement
 	^nil
 
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 3
     let expected = [123]
     try runningSource(source, expecting: expected)
@@ -121,16 +101,6 @@ storeOn: aStream
 	aStream nextPut: $)
 
 """
-    compiler.context.literals = [
-      .symbolConstant("nextPutAll:"),
-      .stringConstant("(("),
-      .symbolConstant("name"),
-      .stringConstant(" new: "),
-      .symbolConstant("store:"),
-      .characterConstant(")"),
-      .stringConstant("; yourself"),
-      .symbolConstant("storeElementsFrom:to:on:")
-    ]
     // 19 .. 59
     let expected = [16, 33, 224, 135, 16, 112, 199, 210, 224, 135, 16, 35, 224, 135, 16, 112, 194, 228, 135, 16, 37, 196, 135, 112, 118, 112, 194, 16, 131, 103, 168, 4, 16, 38, 224, 135, 16, 37, 196, 135, 120]
     try runningSource(source, expecting: expected)

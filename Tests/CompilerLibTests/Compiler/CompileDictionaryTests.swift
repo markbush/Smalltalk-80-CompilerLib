@@ -28,9 +28,6 @@ final class CompileDictionaryTests: XCTestCase {
 remove: anObject ifAbsent: exceptionBlock
 	self shouldNotImplement
 """
-    compiler.context.literals = [
-      .symbolConstant("shouldNotImplement")
-    ]
     // 5 .. 8
     let expected = [112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -44,11 +41,6 @@ asSortedCollection
 	self associationsDo: [:association | aSortedCollection add: association].
 	^aSortedCollection
 """
-    compiler.context.literals = [
-      .stringVariable("SortedCollection", "SortedCollection"),
-      .symbolConstant("associationsDo:"),
-      .symbolConstant("add:")
-    ]
     // 9 .. 28
     let expected = [64, 112, 194, 205, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 226, 125, 225, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -59,9 +51,6 @@ asSortedCollection
 remove: anObject
 	self shouldNotImplement
 """
-    compiler.context.literals = [
-      .symbolConstant("shouldNotImplement")
-    ]
     // 5 .. 8
     let expected = [112, 208, 135, 120]
     try runningSource(source, expecting: expected)
@@ -75,14 +64,6 @@ grow
 	self associationsDo: [:each | newSelf noCheckAdd: each].
 	self become: newSelf
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("basicSize"),
-      .symbolConstant("growSize"),
-      .symbolConstant("associationsDo:"),
-      .symbolConstant("noCheckAdd:"),
-      .symbolConstant("become:")
-    ]
     // 15 .. 41
     let expected = [112, 208, 112, 209, 112, 210, 176, 205, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 228, 125, 227, 135, 112, 16, 229, 135, 120]
     try runningSource(source, expecting: expected)
@@ -99,12 +80,6 @@ add: anAssociation
 		ifFalse: [element value: anAssociation value].
 	^anAssociation
 """
-    compiler.context.literals = [
-      .symbolConstant("findKeyOrNil:"),
-      .symbolConstant("key"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("atNewIndex:put:")
-    ]
     // 11 .. 35
     let expected = [112, 16, 209, 224, 105, 112, 17, 226, 106, 18, 115, 198, 156, 112, 17, 16, 243, 147, 18, 16, 201, 202, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -128,18 +103,6 @@ storeOn: aStream
 	noneYet ifFalse: [aStream nextPutAll: '; yourself'].
 	aStream nextPut: $)
 """
-    compiler.context.literals = [
-      .symbolConstant("nextPutAll:"),
-      .stringConstant("(("),
-      .symbolConstant("name"),
-      .stringConstant(" new)"),
-      .symbolConstant("associationsDo:"),
-      .characterConstant(";"),
-      .stringConstant(" add: "),
-      .symbolConstant("store:"),
-      .stringConstant("; yourself"),
-      .characterConstant(")")
-    ]
     // 23 .. 77
     let expected = [16, 33, 224, 135, 16, 112, 199, 210, 224, 135, 16, 35, 224, 135, 113, 105, 112, 137, 118, 200, 164, 19, 106, 17, 155, 114, 129, 65, 146, 16, 37, 196, 135, 16, 38, 224, 135, 16, 18, 231, 125, 228, 135, 17, 168, 4, 16, 40, 224, 135, 16, 41, 196, 135, 120]
     try runningSource(source, expecting: expected)
@@ -158,11 +121,6 @@ select: aBlock
 		(aBlock value: each value) ifTrue: [newCollection add: each]].
 	^newCollection
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("associationsDo:"),
-      .symbolConstant("add:")
-    ]
     // 9 .. 34
     let expected = [112, 208, 204, 105, 112, 137, 118, 200, 164, 12, 106, 16, 18, 201, 202, 155, 17, 18, 226, 144, 115, 125, 225, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -181,19 +139,6 @@ printOn: aStream
 		aStream space].
 	aStream nextPut: $)
 """
-    compiler.context.literals = [
-      .symbolConstant("position"),
-      .symbolConstant("maxPrint"),
-      .symbolConstant("nextPutAll:"),
-      .symbolConstant(","),
-      .symbolConstant("name"),
-      .stringConstant(" ("),
-      .symbolConstant("associationsDo:"),
-      .stringConstant("...etc...)"),
-      .symbolConstant("printOn:"),
-      .symbolConstant("space"),
-      .characterConstant(")")
-    ]
     // 25 .. 69
     let expected = [16, 208, 112, 209, 176, 105, 16, 112, 199, 212, 37, 227, 226, 135, 112, 137, 118, 200, 164, 18, 106, 16, 208, 17, 179, 156, 16, 39, 226, 135, 120, 18, 16, 232, 135, 16, 217, 125, 230, 135, 16, 42, 196, 135, 120]
     try runningSource(source, expecting: expected)
@@ -207,12 +152,6 @@ inspect
 
 	InspectorView open: (DictionaryInspector inspect: self)
 """
-    compiler.context.literals = [
-      .symbolConstant("open:"),
-      .stringVariable("InspectorView", "InspectorView"),
-      .symbolConstant("inspect:"),
-      .stringVariable("DictionaryInspector", "DictionaryInspector")
-    ]
     // 11 .. 17
     let expected = [65, 67, 112, 226, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -223,10 +162,6 @@ inspect
 do: aBlock
 	super do: [:assoc | aBlock value: assoc value]
 """
-    compiler.context.literals = [
-      .symbolConstant("do:"),
-      .stringVariable("Dictionary", "Dictionary")
-    ]
     // 7 .. 22
     let expected = [112, 137, 118, 200, 164, 6, 105, 16, 17, 201, 202, 125, 133, 32, 135, 120]
     try runningSource(source, expecting: expected)
@@ -249,14 +184,6 @@ findKeyOrNil: key
 					pass > 2 ifTrue: [^self grow findKeyOrNil: key]]].
 	^location
 """
-    compiler.context.literals = [
-      .symbolConstant("basicSize"),
-      .symbolConstant("hash"),
-      .symbolConstant("findKeyOrNil:"),
-      .symbolConstant("grow"),
-      .symbolConstant("key"),
-      .symbolConstant("basicAt:")
-    ]
     // 15 .. 70
     let expected = [112, 208, 106, 118, 108, 16, 209, 18, 186, 118, 176, 105, 112, 17, 229, 129, 67, 115, 198, 153, 113, 147, 19, 212, 16, 182, 168, 26, 17, 118, 176, 129, 65, 18, 179, 172, 15, 118, 105, 20, 118, 176, 108, 20, 119, 179, 156, 112, 211, 16, 226, 124, 163, 214, 17, 124]
     try runningSource(source, expecting: expected)
@@ -277,12 +204,6 @@ declare: key from: aDictionary
 		ifFalse:
 			[self at: key put: nil]
 """
-    compiler.context.literals = [
-      .symbolConstant("includesKey:"),
-      .symbolConstant("add:"),
-      .symbolConstant("associationAt:"),
-      .symbolConstant("removeKey:")
-    ]
     // 11 .. 36
     let expected = [112, 16, 224, 152, 120, 17, 16, 224, 172, 10, 112, 17, 16, 226, 225, 135, 17, 16, 227, 147, 112, 16, 115, 193, 135, 120]
     try runningSource(source, expecting: expected)
@@ -296,10 +217,6 @@ includesAssociation: anAssociation
 
 	^super includes: anAssociation
 """
-    compiler.context.literals = [
-      .symbolConstant("includes:"),
-      .stringVariable("Dictionary", "Dictionary")
-    ]
     // 7 .. 11
     let expected = [112, 16, 133, 32, 124]
     try runningSource(source, expecting: expected)
@@ -310,10 +227,6 @@ includesAssociation: anAssociation
 errorValueNotFound
 	self error: 'value not found'
 """
-    compiler.context.literals = [
-      .symbolConstant("error:"),
-      .stringConstant("value not found")
-    ]
     // 7 .. 11
     let expected = [112, 33, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -326,10 +239,6 @@ removeAssociation: anAssociation ifAbsent: anExceptionBlock
 
 	^super remove: anAssociation ifAbsent: anExceptionBlock
 """
-    compiler.context.literals = [
-      .symbolConstant("remove:ifAbsent:"),
-      .stringVariable("Dictionary", "Dictionary")
-    ]
     // 7 .. 12
     let expected = [112, 16, 17, 133, 64, 124]
     try runningSource(source, expecting: expected)
@@ -342,10 +251,6 @@ removeAssociation: anAssociation
 
 	^self removeAssociation: anAssociation ifAbsent: [self errorNotFound]
 """
-    compiler.context.literals = [
-      .symbolConstant("removeAssociation:ifAbsent:"),
-      .symbolConstant("errorNotFound")
-    ]
     // 7 .. 18
     let expected = [112, 16, 137, 117, 200, 164, 3, 112, 209, 125, 240, 124]
     try runningSource(source, expecting: expected)
@@ -359,10 +264,6 @@ findKey: key ifAbsent: aBlock
 	(self basicAt: index) == nil ifTrue: [^aBlock value].
 	^index
 """
-    compiler.context.literals = [
-      .symbolConstant("findKeyOrNil:"),
-      .symbolConstant("basicAt:")
-    ]
     // 7 .. 21
     let expected = [112, 16, 224, 106, 112, 18, 225, 115, 198, 154, 17, 201, 124, 18, 124]
     try runningSource(source, expecting: expected)
@@ -373,10 +274,6 @@ findKey: key ifAbsent: aBlock
 errorKeyNotFound
 	self error: 'key not found'
 """
-    compiler.context.literals = [
-      .symbolConstant("error:"),
-      .stringConstant("key not found")
-    ]
     // 7 .. 11
     let expected = [112, 33, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -389,10 +286,6 @@ keysDo: aBlock
 
 	self associationsDo: [:association | aBlock value: association key]
 """
-    compiler.context.literals = [
-      .symbolConstant("associationsDo:"),
-      .symbolConstant("key")
-    ]
     // 7 .. 21
     let expected = [112, 137, 118, 200, 164, 6, 105, 16, 17, 209, 202, 125, 224, 135, 120]
     try runningSource(source, expecting: expected)
@@ -408,10 +301,6 @@ associationAt: key ifAbsent: aBlock
 	index _ self findKey: key ifAbsent: [^aBlock value].
 	^self basicAt: index
 """
-    compiler.context.literals = [
-      .symbolConstant("findKey:ifAbsent:"),
-      .symbolConstant("basicAt:")
-    ]
     // 7 .. 22
     let expected = [112, 16, 137, 117, 200, 164, 3, 17, 201, 124, 240, 106, 112, 18, 225, 124]
     try runningSource(source, expecting: expected)
@@ -427,10 +316,6 @@ keyAtValue: value ifAbsent: exceptionBlock
 		[:association | value == association value ifTrue: [^association key]].
 	^exceptionBlock value
 """
-    compiler.context.literals = [
-      .symbolConstant("associationsDo:"),
-      .symbolConstant("key")
-    ]
     // 7 .. 28
     let expected = [112, 137, 118, 200, 164, 11, 106, 16, 18, 201, 198, 154, 18, 209, 124, 115, 125, 224, 135, 17, 201, 124]
     try runningSource(source, expecting: expected)
@@ -446,11 +331,6 @@ keys
 	self keysDo: [:key | aSet add: key].
 	^aSet
 """
-    compiler.context.literals = [
-      .stringVariable("Set", "Set"),
-      .symbolConstant("keysDo:"),
-      .symbolConstant("add:")
-    ]
     // 9 .. 28
     let expected = [64, 112, 194, 205, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 226, 125, 225, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -466,10 +346,6 @@ at: key ifAbsent: aBlock
 	index _ self findKey: key ifAbsent: [^aBlock value].
 	^(self basicAt: index) value
 """
-    compiler.context.literals = [
-      .symbolConstant("findKey:ifAbsent:"),
-      .symbolConstant("basicAt:")
-    ]
     // 7 .. 23
     let expected = [112, 16, 137, 117, 200, 164, 3, 17, 201, 124, 240, 106, 112, 18, 225, 201, 124]
     try runningSource(source, expecting: expected)
@@ -490,12 +366,6 @@ removeKey: key ifAbsent: aBlock
 	self fixCollisionsFrom: index.
 	^element
 """
-    compiler.context.literals = [
-      .symbolConstant("findKey:ifAbsent:"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("basicAt:put:"),
-      .symbolConstant("fixCollisionsFrom:")
-    ]
     // 11 .. 41
     let expected = [112, 16, 137, 117, 200, 164, 3, 17, 201, 124, 240, 106, 112, 18, 225, 107, 112, 18, 115, 242, 135, 0, 118, 177, 96, 112, 18, 227, 135, 19, 124]
     try runningSource(source, expecting: expected)
@@ -508,10 +378,6 @@ associationsDo: aBlock
 
 	super do: aBlock
 """
-    compiler.context.literals = [
-      .symbolConstant("do:"),
-      .stringVariable("Dictionary", "Dictionary")
-    ]
     // 7 .. 12
     let expected = [112, 16, 133, 32, 135, 120]
     try runningSource(source, expecting: expected)
@@ -527,10 +393,6 @@ values
 	self do: [:value | aBag add: value].
 	^aBag
 """
-    compiler.context.literals = [
-      .stringVariable("Bag", "Bag"),
-      .symbolConstant("add:")
-    ]
     // 7 .. 24
     let expected = [64, 204, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 225, 125, 203, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -547,10 +409,6 @@ collect: aBlock
 	self do: [:each | newCollection add: (aBlock value: each)].
 	^newCollection
 """
-    compiler.context.literals = [
-      .stringVariable("Bag", "Bag"),
-      .symbolConstant("add:")
-    ]
     // 7 .. 26
     let expected = [64, 204, 105, 112, 137, 118, 200, 164, 7, 106, 17, 16, 18, 202, 225, 125, 203, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -567,11 +425,6 @@ associations
 	self associationsDo: [:key | aCollection add: key].
 	^aCollection
 """
-    compiler.context.literals = [
-      .stringVariable("OrderedCollection", "OrderedCollection"),
-      .symbolConstant("associationsDo:"),
-      .symbolConstant("add:")
-    ]
     // 9 .. 28
     let expected = [64, 112, 194, 205, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 226, 125, 225, 135, 16, 124]
     try runningSource(source, expecting: expected)
@@ -584,10 +437,6 @@ associationAt: key
 
 	^self associationAt: key ifAbsent: [self errorKeyNotFound]
 """
-    compiler.context.literals = [
-      .symbolConstant("associationAt:ifAbsent:"),
-      .symbolConstant("errorKeyNotFound")
-    ]
     // 7 .. 18
     let expected = [112, 16, 137, 117, 200, 164, 3, 112, 209, 125, 240, 124]
     try runningSource(source, expecting: expected)
@@ -601,10 +450,6 @@ removeKey: key
 
 	^self removeKey: key ifAbsent: [self errorKeyNotFound]
 """
-    compiler.context.literals = [
-      .symbolConstant("removeKey:ifAbsent:"),
-      .symbolConstant("errorKeyNotFound")
-    ]
     // 7 .. 18
     let expected = [112, 16, 137, 117, 200, 164, 3, 112, 209, 125, 240, 124]
     try runningSource(source, expecting: expected)
@@ -619,11 +464,6 @@ includesKey: key
 	index _ self findKeyOrNil: key.
 	^(self basicAt: index) ~~ nil
 """
-    compiler.context.literals = [
-      .symbolConstant("findKeyOrNil:"),
-      .symbolConstant("~~"),
-      .symbolConstant("basicAt:")
-    ]
     // 9 .. 18
     let expected = [112, 16, 224, 105, 112, 17, 226, 115, 225, 124]
     try runningSource(source, expecting: expected)
@@ -637,10 +477,6 @@ keyAtValue: value
 
 	^self keyAtValue: value ifAbsent: [self errorValueNotFound]
 """
-    compiler.context.literals = [
-      .symbolConstant("keyAtValue:ifAbsent:"),
-      .symbolConstant("errorValueNotFound")
-    ]
     // 7 .. 18
     let expected = [112, 16, 137, 117, 200, 164, 3, 112, 209, 125, 240, 124]
     try runningSource(source, expecting: expected)
@@ -653,10 +489,6 @@ at: key
 
 	^self at: key ifAbsent: [self errorKeyNotFound]
 """
-    compiler.context.literals = [
-      .symbolConstant("at:ifAbsent:"),
-      .symbolConstant("errorKeyNotFound")
-    ]
     // 7 .. 18
     let expected = [112, 16, 137, 117, 200, 164, 3, 112, 209, 125, 240, 124]
     try runningSource(source, expecting: expected)
@@ -668,9 +500,6 @@ includes: anObject
 	self do: [:each | anObject = each ifTrue: [^true]].
 	^false
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 19
     let expected = [112, 137, 118, 200, 164, 8, 105, 16, 17, 182, 152, 121, 115, 125, 203, 135, 122]
     try runningSource(source, expecting: expected)
@@ -686,9 +515,6 @@ occurrencesOf: anObject
 	self do: [:each | anObject = each ifTrue: [count _ count + 1]].
 	^count
 """
-    compiler.context.literals = [
-
-    ]
     // 3 .. 27
     let expected = [117, 105, 112, 137, 118, 200, 164, 13, 106, 16, 18, 182, 157, 17, 118, 176, 129, 65, 144, 115, 125, 203, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -708,13 +534,6 @@ at: key put: anObject
 		ifFalse: [element value: anObject].
 	^anObject
 """
-    compiler.context.literals = [
-      .symbolConstant("findKeyOrNil:"),
-      .symbolConstant("basicAt:"),
-      .symbolConstant("atNewIndex:put:"),
-      .symbolConstant("key:value:"),
-      .stringVariable("Association", "Association")
-    ]
     // 13 .. 38
     let expected = [112, 16, 224, 106, 112, 18, 225, 107, 19, 115, 198, 159, 112, 18, 68, 16, 17, 243, 242, 146, 19, 17, 202, 135, 17, 124]
     try runningSource(source, expecting: expected)
@@ -730,13 +549,6 @@ rehash
 	self associationsDo: [:each | newSelf noCheckAdd: each].
 	self become: newSelf
 """
-    compiler.context.literals = [
-      .symbolConstant("species"),
-      .symbolConstant("basicSize"),
-      .symbolConstant("associationsDo:"),
-      .symbolConstant("noCheckAdd:"),
-      .symbolConstant("become:")
-    ]
     // 13 .. 36
     let expected = [112, 208, 112, 209, 205, 104, 112, 137, 118, 200, 164, 5, 105, 16, 17, 227, 125, 226, 135, 112, 16, 228, 135, 120]
     try runningSource(source, expecting: expected)
