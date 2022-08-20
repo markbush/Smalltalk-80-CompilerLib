@@ -5,7 +5,12 @@ public class CompilerContext : CustomStringConvertible {
   var temporaries: [String] = []
   // TODO: replace LiteralValue with Object
   var literals: [LiteralValue] = []
+  let specialSelectors = [
+    "ifTrue:", "ifFalse:", "ifTrue:ifFalse:", "ifFalse:ifTrue:",
+			"and:", "or:", "whileFalse:", "whileTrue:"
+  ]
   let specialVars: [String:Bytecode] = [
+    "thisContext": .pushContext,
     "self": .pushSelf,
     "super": .pushSelf,
     "true": .pushTrue,
@@ -105,6 +110,10 @@ public class CompilerContext : CustomStringConvertible {
     bytecodes.append(bytecode)
   }
 
+  public func variableIsKnown(_ variable: String) -> Bool {
+    return arguments.contains(variable) || temporaries.contains(variable) || specialVars.keys.contains(variable) || classDescription.instanceVariables.contains(variable)
+  }
+
   func indexForLiteralVariable(_ variable: String) -> Int {
     for index in 0..<literals.count {
       switch literals[index] {
@@ -192,10 +201,14 @@ public class CompilerContext : CustomStringConvertible {
     temporaries.append(variable)
   }
 
-  func pushLiteralConstant(_ literal: LiteralValue) {
+  func saveLiteralConstant(_ literal: LiteralValue) {
     if literals.firstIndex(of: literal) == nil {
       literals.append(literal)
     }
+  }
+
+  func pushLiteralConstant(_ literal: LiteralValue) {
+    saveLiteralConstant(literal)
     guard let index = literals.firstIndex(of: literal) else {
       fatalError("Literal wasn't stored!")
     }
@@ -212,13 +225,28 @@ public class CompilerContext : CustomStringConvertible {
   }
 
   public func pushSmallInteger(_ number: Int) {
-    let literal = LiteralValue.intConstant(String(number))
+    let literal = LiteralValue.numConstant(String(number))
     pushLiteralConstant(literal)
   }
 
+  public func saveInteger(_ number: String) {
+    let literal = LiteralValue.numConstant(number)
+    saveLiteralConstant(literal)
+  }
+
   public func pushInteger(_ number: String) {
-    let literal = LiteralValue.intConstant(number)
+    let literal = LiteralValue.numConstant(number)
     pushLiteralConstant(literal)
+  }
+
+  public func pushNumber(_ number: String) {
+    let literal = LiteralValue.numConstant(number)
+    pushLiteralConstant(literal)
+  }
+
+  public func saveLiteralString(_ string: String) {
+    let literal = LiteralValue.stringConstant(string)
+    saveLiteralConstant(literal)
   }
 
   public func pushLiteralString(_ string: String) {
@@ -226,8 +254,33 @@ public class CompilerContext : CustomStringConvertible {
     pushLiteralConstant(literal)
   }
 
+  public func saveLiteralSymbol(_ string: String) {
+    let literal = LiteralValue.symbolConstant(string)
+    saveLiteralConstant(literal)
+  }
+
+  public func pushLiteralSymbol(_ string: String) {
+    let literal = LiteralValue.symbolConstant(string)
+    pushLiteralConstant(literal)
+  }
+
+  public func saveLiteralCharacter(_ string: String) {
+    let literal = LiteralValue.characterConstant(string)
+    saveLiteralConstant(literal)
+  }
+
   public func pushLiteralCharacter(_ string: String) {
     let literal = LiteralValue.characterConstant(string)
+    pushLiteralConstant(literal)
+  }
+
+  public func saveLiteralArray(_ array: String) {
+    let literal = LiteralValue.arrayConstant(array)
+    saveLiteralConstant(literal)
+  }
+
+  public func pushLiteralArray(_ array: String) {
+    let literal = LiteralValue.arrayConstant(array)
     pushLiteralConstant(literal)
   }
 
@@ -287,9 +340,22 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
-      // TODO: handle other sends
+      if node.numArguments < 256 && index < 256 {
+        guard let arg1Bytecode = Bytecode(rawValue: node.numArguments) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(node.numArguments))!")
+        }
+        guard let arg2Bytecode = Bytecode(rawValue: index) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(index))!")
+        }
+        push(.sendDoubleLong)
+        push(arg1Bytecode)
+        push(arg2Bytecode)
+        return
+      }
+      // Should never encounter other sends!
       fatalError("Cannot handle selector: \(selector) at index: \(index)")
     }
+    fatalError("Did not find literal for selector: \(selector)")
   }
 
   public func popVariable(_ variable: String) {
@@ -307,6 +373,7 @@ public class CompilerContext : CustomStringConvertible {
       }
       push(.popLong)
       push(bytecode)
+      return
     }
     // Check for temporaries
     if let tempIndex = temporaries.firstIndex(of: variable) {
@@ -325,7 +392,19 @@ public class CompilerContext : CustomStringConvertible {
       }
       push(.popLong)
       push(bytecode)
+      return
     }
+    let index = indexForLiteralVariable(variable)
+    if index < 64 {
+      let extensionCode = index | 0b11000000
+      guard let bytecode = Bytecode(rawValue: extensionCode) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+      }
+      push(.popLong)
+      push(bytecode)
+      return
+    }
+    fatalError("Cannot handle popping to \(variable) with literal index \(index)")
   }
 
   public func storeVariable(_ variable: String) {

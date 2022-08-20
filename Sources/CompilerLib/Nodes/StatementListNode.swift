@@ -21,4 +21,10 @@ public class StatementListNode : Node {
   override public func accept(_ visitor: NodeVisitor) {
     visitor.visitStatementListNode(self)
   }
+  override public func returns() -> Bool {
+    if statements.count == 0 {
+      return false
+    }
+    return statements[statements.count-1].returns()
+  }
 }

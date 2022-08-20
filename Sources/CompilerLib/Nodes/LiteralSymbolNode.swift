@@ -8,4 +8,11 @@ public class LiteralSymbolNode : LiteralNode {
   public init(_ value: String) {
     self.value = value
   }
+
+  override public func accept(_ visitor: NodeVisitor) {
+    visitor.visitLiteralSymbolNode(self)
+  }
+  override public func addLiteralsTo(_ context: CompilerContext) {
+    context.saveLiteralSymbol(value)
+  }
 }

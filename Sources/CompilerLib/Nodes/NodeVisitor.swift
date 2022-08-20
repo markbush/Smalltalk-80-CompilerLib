@@ -10,4 +10,6 @@ public protocol NodeVisitor {
   func visitCascadeMessageNode(_ node: CascadeMessageNode)
   func visitLiteralCharacterNode(_ node: LiteralCharacterNode)
   func visitBlockNode(_ node: BlockNode)
+  func visitLiteralSymbolNode(_ node: LiteralSymbolNode)
+  func visitLiteralArrayNode(_ node: LiteralArrayNode)
 }

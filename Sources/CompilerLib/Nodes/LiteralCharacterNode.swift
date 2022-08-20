@@ -12,4 +12,7 @@ public class LiteralCharacterNode : LiteralNode {
   override public func accept(_ visitor: NodeVisitor) {
     visitor.visitLiteralCharacterNode(self)
   }
+  override public func addLiteralsTo(_ context: CompilerContext) {
+    context.saveLiteralCharacter(value)
+  }
 }

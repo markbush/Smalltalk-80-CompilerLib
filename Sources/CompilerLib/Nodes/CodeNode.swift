@@ -13,4 +13,17 @@ public class CodeNode : ExpressionNode {
     }
     return "("+String(parts.joined(separator: "\n"))+")"
   }
+  override public func addLiteralsTo(_ context: CompilerContext) {
+    if let codeBody = body {
+      for statement in codeBody.statements {
+        statement.addLiteralsTo(context)
+      }
+    }
+  }
+  override public func returns() -> Bool {
+    if let bodyNode = body {
+      return bodyNode.returns()
+    }
+    return false
+  }
 }

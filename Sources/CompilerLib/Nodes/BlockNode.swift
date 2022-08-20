@@ -15,4 +15,10 @@ public class BlockNode : CodeNode {
   override public func accept(_ visitor: NodeVisitor) {
     visitor.visitBlockNode(self)
   }
+  override public func addLiteralsTo(_ context: CompilerContext) {
+    for argument in arguments {
+      context.saveTempVar(argument.name)
+    }
+    super.addLiteralsTo(context)
+  }
 }

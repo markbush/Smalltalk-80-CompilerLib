@@ -307,10 +307,13 @@ case sendTwoArgLiteralF = 0xFF
       if case let .characterConstant(constant) = context.literals[index] {
         return " ($\(constant))"
       }
-      if case let .intConstant(constant) = context.literals[index] {
+      if case let .numConstant(constant) = context.literals[index] {
         return " (\(constant))"
       }
       if case let .classVariable(variable, _) = context.literals[index] {
+        return " (\(variable))"
+      }
+      if case let .stringVariable(variable, _) = context.literals[index] {
         return " (\(variable))"
       }
     }

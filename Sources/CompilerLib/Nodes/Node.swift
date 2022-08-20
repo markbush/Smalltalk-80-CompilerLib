@@ -21,4 +21,10 @@ public class Node : CustomStringConvertible, VisitableNode {
   public func accept(_ visitor: NodeVisitor) {
     fatalError("\"accept()\" must be implemented in class \(String(describing: type(of: self)))")
   }
+  public func addLiteralsTo(_ context: CompilerContext) {
+    fatalError("\"addLiteralsTo()\" must be implemented in class \(String(describing: type(of: self)))")
+  }
+  public func returns() -> Bool {
+    fatalError("\"returns()\" must be implemented in class \(String(describing: type(of: self)))")
+  }
 }

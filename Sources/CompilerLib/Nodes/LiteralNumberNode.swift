@@ -12,4 +12,10 @@ public class LiteralNumberNode : LiteralNode {
   override public func accept(_ visitor: NodeVisitor) {
     visitor.visitLiteralNumberNode(self)
   }
+  override public func addLiteralsTo(_ context: CompilerContext) {
+    switch value {
+    case "-1", "0", "1", "2": break
+    default: context.saveInteger(value)
+    }
+  }
 }

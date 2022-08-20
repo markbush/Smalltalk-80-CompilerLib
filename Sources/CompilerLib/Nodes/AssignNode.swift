@@ -16,4 +16,15 @@ public class AssignNode : ExpressionNode {
   override public func accept(_ visitor: NodeVisitor) {
     visitor.visitAssignNode(self)
   }
+  override public func addLiteralsTo(_ context: CompilerContext) {
+    if let variableNode = variable {
+      variableNode.addLiteralsTo(context)
+    }
+    if let valueNode = value {
+      valueNode.addLiteralsTo(context)
+    }
+  }
+  override public func returns() -> Bool {
+    return false
+  }
 }

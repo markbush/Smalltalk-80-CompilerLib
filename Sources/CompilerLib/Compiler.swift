@@ -3,10 +3,6 @@ import Foundation
 public class Compiler : NodeVisitor, CustomStringConvertible {
   var context: CompilerContext
   var source = ""
-  let specialSelectors = [
-    "ifTrue:", "ifFalse:", "ifTrue:ifFalse:", "ifFalse:ifTrue:",
-			"and:", "or:", "whileFalse:", "whileTrue:"
-  ]
 
   public var description: String {
     let parts = [source,
@@ -61,18 +57,26 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       context.addArg(variableNode.name)
     }
     if let body = node.body {
+      for variableNode in body.temporaries {
+        context.addTemp(variableNode.name)
+      }
+      // TODO: Pragmas
+      node.addLiteralsTo(context)
       body.mustHaveValue = false
       body.accept(self)
     }
   }
 
   public func visitStatementListNode(_ node: StatementListNode) {
-    for variableNode in node.temporaries {
-      context.addTemp(variableNode.name)
-    }
-    // TODO: Pragmas
+    // Empty blocks return nil or their argument
     if node.statements.count == 0 && node.mustHaveValue {
-      context.push(.pushNil)
+      if let blockNode = node.parent as? BlockNode {
+        if blockNode.arguments.count > 0 {
+          blockNode.arguments[0].accept(self)
+        } else {
+          context.push(.pushNil)
+        }
+      }
     }
     for i in 0..<node.statements.count {
       let statement = node.statements[i]
@@ -300,6 +304,9 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
     restoreContextTo(savedReceiverContext)
     restoreContextTo(savedContext)
+    if node.mustHaveValue {
+      context.push(.pushNil)
+    }
   }
 
   func handleMessageSendFor(_ node: MessageNode) {
@@ -315,11 +322,11 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
   public func visitMessageNode(_ node: MessageNode) {
     node.receiver.mustHaveValue = true
-    if specialSelectors.contains(node.selector) {
+    if context.specialSelectors.contains(node.selector) {
       handleSpecialSelector(node)
       return
     }
-    context.saveSelectorFor(node)
+    // context.saveSelectorFor(node)
     node.receiver.accept(self)
     handleMessageSendFor(node)
   }
@@ -361,7 +368,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       context.pushInteger(value)
       return
     }
-    fatalError("Cannot handle number: \(value)")
+    context.pushNumber(value)
   }
 
   public func visitAssignNode(_ node: AssignNode) {
@@ -382,9 +389,19 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     context.pushLiteralString(value)
   }
 
+  public func visitLiteralSymbolNode(_ node: LiteralSymbolNode) {
+    let value = node.value
+    context.pushLiteralSymbol(value)
+  }
+
   public func visitLiteralCharacterNode(_ node: LiteralCharacterNode) {
     let value = node.value
     context.pushLiteralCharacter(value)
+  }
+
+  public func visitLiteralArrayNode(_ node: LiteralArrayNode) {
+    // TODO: fix this!
+    context.pushLiteralArray("\(node.values)")
   }
 
   public func visitCascadeMessageNode(_ node: CascadeMessageNode) {
@@ -402,12 +419,14 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
         fatalError("Cascades should only contain messages")
       }
       message.mustHaveValue = false
+      // context.saveSelectorFor(message)
       handleMessageSendFor(message)
     }
     guard let lastMessage = node.messages[node.messages.count-1] as? MessageNode else {
       fatalError("Cascades should only contain messages")
     }
     lastMessage.mustHaveValue = node.mustHaveValue
+    // context.saveSelectorFor(lastMessage)
     handleMessageSendFor(lastMessage)
   }
 
@@ -416,16 +435,13 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     context.pushNum(node.arguments.count)
     context.push(.sendBlockCopy)
     let savedContext = saveContext()
-    for argument in node.arguments {
-      context.saveTempVar(argument.name)
-    }
     for argument in node.arguments.reversed() {
       context.popVariable(argument.name)
     }
     if let body = node.body {
       body.mustHaveValue = node.mustHaveValue
       body.accept(self)
-      if !context.returns() {
+      if !body.returns() {
         context.push(.returnTopFromBlock)
       }
     }
