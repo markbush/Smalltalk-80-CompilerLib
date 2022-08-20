@@ -29,7 +29,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       output.append(source)
       output.append("\(ast)")
       ast.accept(self)
-      if (!context.returns()) {
+      if (!ast.returns()) {
         context.push(.returnSelf)
       }
     } catch ParserError.syntaxError(let reason, let position) {
@@ -181,7 +181,12 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     argBody.mustHaveValue = true
     argBody.accept(self)
     let numArgBytes = context.bytecodes.count
-    savedContext.pushConditionalJumpOn(false, numBytes: 2)
+    if numArgBytes <= 8 {
+      savedContext.pushConditionalJumpOn(false, numBytes: 2)
+    } else {
+      // Next jump will be a long jump
+      savedContext.pushConditionalJumpOn(false, numBytes: 3)
+    }
     savedContext.push(.pushTrue)
     savedContext.pushJump(numArgBytes)
     restoreContextTo(savedContext)
