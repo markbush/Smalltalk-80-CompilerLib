@@ -206,7 +206,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     var numBytes = context.bytecodes.count
     if condition {
       if node.mustHaveValue {
-        if !context.returns() {
+        if !blockBody.returns() {
           context.push(.jump1)
           numBytes += 1
         }
@@ -252,10 +252,10 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
 
     let origContext = saveContext()
     trueBody.accept(self)
-    let trueReturns = context.returns()
+    let trueReturns = trueBody.returns()
     let trueContext = saveContext()
     falseBody.accept(self)
-    let falseReturns = context.returns()
+    let falseReturns = falseBody.returns()
     if !trueReturns && context.bytecodes.count > 0 {
       trueContext.pushJump(context.bytecodes.count)
     }

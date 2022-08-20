@@ -15,4 +15,7 @@ public class LiteralStringNode : LiteralNode {
   override public func addLiteralsTo(_ context: CompilerContext) {
     context.saveLiteralString(value)
   }
+  override public func returns() -> Bool {
+    return false
+  }
 }

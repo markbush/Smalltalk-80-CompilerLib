@@ -18,4 +18,7 @@ public class LiteralNumberNode : LiteralNode {
     default: context.saveInteger(value)
     }
   }
+  override public func returns() -> Bool {
+    return false
+  }
 }

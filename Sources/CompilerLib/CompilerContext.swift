@@ -88,16 +88,6 @@ public class CompilerContext : CustomStringConvertible {
     literals = []
   }
 
-  public func returns() -> Bool {
-    if bytecodes.count == 0 {
-      return false
-    }
-    switch bytecodes[bytecodes.count-1] {
-    case .returnSelf, .returnTrue, .returnFalse, .returnNil, .returnTop: return true
-    default: return false
-    }
-  }
-
   public func addArg(_ argument: String) {
     arguments.append(argument)
   }
