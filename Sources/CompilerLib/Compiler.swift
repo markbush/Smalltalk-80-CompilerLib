@@ -3,6 +3,12 @@ import Foundation
 public class Compiler : NodeVisitor, CustomStringConvertible {
   var context: CompilerContext
   var source = ""
+  let quickReturnVars: [String:Bytecode] = [
+    "self": .returnSelf,
+    "true": .returnTrue,
+    "false": .returnFalse,
+    "nil": .returnNil
+  ]
 
   public var description: String {
     let parts = [source,
@@ -86,12 +92,13 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
   }
 
   public func visitReturnNode(_ node: ReturnNode) {
+    if let variableNode = node.value as? VariableNode, let bytecode = quickReturnVars[variableNode.name] {
+      context.push(bytecode)
+      return
+    }
     node.value.mustHaveValue = true
     node.value.accept(self)
     context.push(.returnTop)
-    if node.parent?.parent is MethodNode && node.value is VariableNode {
-      fixReturn(context)
-    }
   }
 
   func saveContext() -> CompilerContext {
@@ -108,21 +115,7 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     let _ = theContext.bytecodes.popLast()
   }
 
-  func fixReturn(_ theContext: CompilerContext) {
-    if theContext.bytecodes.count >= 2 && theContext.bytecodes[theContext.bytecodes.count-1] == .returnTop {
-      let prevBytecode = theContext.bytecodes[theContext.bytecodes.count-2]
-      switch prevBytecode {
-      case .pushSelf: unwindContext(theContext, with: .returnSelf)
-      case .pushTrue: unwindContext(theContext, with: .returnTrue)
-      case .pushFalse: unwindContext(theContext, with: .returnFalse)
-      case .pushNil: unwindContext(theContext, with: .returnNil)
-      default: break
-      }
-    }
-  }
-
   func restoreContextTo(_ savedContext: CompilerContext) {
-    fixReturn(context)
     savedContext.bytecodes.append(contentsOf: context.bytecodes)
     savedContext.literals = context.literals
     savedContext.temporaries = context.temporaries
@@ -210,7 +203,6 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
     let savedContext = saveContext()
     blockBody.mustHaveValue = node.mustHaveValue
     blockBody.accept(self)
-    fixReturn(context)
     var numBytes = context.bytecodes.count
     if condition {
       if node.mustHaveValue {
@@ -331,7 +323,6 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
       handleSpecialSelector(node)
       return
     }
-    // context.saveSelectorFor(node)
     node.receiver.accept(self)
     handleMessageSendFor(node)
   }
@@ -424,14 +415,12 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
         fatalError("Cascades should only contain messages")
       }
       message.mustHaveValue = false
-      // context.saveSelectorFor(message)
       handleMessageSendFor(message)
     }
     guard let lastMessage = node.messages[node.messages.count-1] as? MessageNode else {
       fatalError("Cascades should only contain messages")
     }
     lastMessage.mustHaveValue = node.mustHaveValue
-    // context.saveSelectorFor(lastMessage)
     handleMessageSendFor(lastMessage)
   }
 
@@ -450,7 +439,6 @@ public class Compiler : NodeVisitor, CustomStringConvertible {
         context.push(.returnTopFromBlock)
       }
     }
-    fixReturn(context)
     let numBytes = context.bytecodes.count
     savedContext.pushLongJump(numBytes)
     restoreContextTo(savedContext)
