@@ -418,8 +418,7 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
-      // TODO: handle more than 64 instance variables
-
+      fatalError("Cannot handle more than 64 instance variables yet, need: \(index)")
     }
     // Check for temporaries
     if let tempIndex = temporaries.firstIndex(of: variable) {
@@ -435,8 +434,19 @@ public class CompilerContext : CustomStringConvertible {
         return
       }
       // TODO: handle more than 64 arguments+temporaries
-      fatalError("Cannot handle more than 64 instance variables")
+      fatalError("Cannot handle more than 64 temporaries yet, need: \(index)")
     }
+    let index = indexForLiteralVariable(variable)
+    if index < 64 {
+      let extensionCode = index | 0b11000000
+      guard let bytecode = Bytecode(rawValue: extensionCode) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+      }
+      push(.storeLong)
+      push(bytecode)
+      return
+    }
+    fatalError("Cannot handle popping to \(variable) with literal index \(index)")
   }
 
   public func pushNum(_ num: Int) {
