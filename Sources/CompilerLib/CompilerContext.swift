@@ -216,6 +216,9 @@ public class CompilerContext : CustomStringConvertible {
   }
 
   public func saveTempVar(_ variable: String) {
+    if let _ = arguments.firstIndex(of: variable) {
+      return
+    }
     if let _ = temporaries.firstIndex(of: variable) {
       return
     }
@@ -380,6 +383,24 @@ public class CompilerContext : CustomStringConvertible {
   }
 
   public func popVariable(_ variable: String) {
+    // Check for args (not supposed to store into args!)
+    if let argIndex = arguments.firstIndex(of: variable) {
+      let index = argIndex
+      if index < 8 {
+        guard let bytecode = Bytecode(rawValue: Bytecode.popTemporary0.rawValue + index) else {
+          fatalError("Bytecodes 104-111 (pop temporary variable) not set up correctly!")
+        }
+        push(bytecode)
+        return
+      }
+      let extensionCode = index | 0b01000000
+      guard let bytecode = Bytecode(rawValue: extensionCode) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+      }
+      push(.popLong)
+      push(bytecode)
+      return
+    }
     // Check for instance variables
     if let index = classDescription.indexOfInstanceVariable(variable) {
       if index < 8 {
