@@ -130,8 +130,16 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
-      // TODO: handle more than 16 instance variables
-      fatalError("Cannot handle more than 16 instance variables for push")
+      if index < 64 {
+        let extensionCode = index
+        guard let bytecode = Bytecode(rawValue: extensionCode) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+        }
+        push(.pushLong)
+        push(bytecode)
+        return
+      }
+      fatalError("Cannot handle more than 64 instance variables for push, needed: \(index)")
     }
     // Check method arguments
     if let index = arguments.firstIndex(of: variable) {
@@ -142,8 +150,16 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
-      // TODO: handle more than 16 arguments
-      fatalError("Cannot handle more than 16 arguments")
+      if index < 64 {
+        let extensionCode = index | 0b01000000
+        guard let bytecode = Bytecode(rawValue: extensionCode) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+        }
+        push(.pushLong)
+        push(bytecode)
+        return
+      }
+      fatalError("Cannot handle more than 64 arguments for push, needed: \(index)")
     }
     // Check temporaries
     if let tempIndex = temporaries.firstIndex(of: variable) {
@@ -156,8 +172,16 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
-      // TODO: handle more than 16 arguments+temporaries
-      fatalError("Cannot handle more than 16 arguments + temporaries")
+      if index < 64 {
+        let extensionCode = index | 0b01000000
+        guard let bytecode = Bytecode(rawValue: extensionCode) else {
+          fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+        }
+        push(.pushLong)
+        push(bytecode)
+        return
+      }
+      fatalError("Cannot handle more than 64 arguments + temporaries for push, needed: \(index)")
     }
     let variableIndex = indexForLiteralVariable(variable)
     if variableIndex < 32 {
@@ -167,9 +191,16 @@ public class CompilerContext : CustomStringConvertible {
       push(bytecode)
       return
     }
-    // TODO: handle more than 32 literals
-    // TODO: handle all globals
-    fatalError("Cannot handle globals")
+    if variableIndex < 64 {
+      let extensionCode = variableIndex | 0b11000000
+      guard let bytecode = Bytecode(rawValue: extensionCode) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+      }
+      push(.pushLong)
+      push(bytecode)
+      return
+    }
+    fatalError("Cannot handle more than 64 variables for push, needed: \(variableIndex)")
   }
 
   public func saveSelectorFor(_ node: MessageNode) {
