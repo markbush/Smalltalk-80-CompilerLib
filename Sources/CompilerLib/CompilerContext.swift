@@ -244,8 +244,16 @@ public class CompilerContext : CustomStringConvertible {
       push(bytecode)
       return
     }
-    // TODO: handle more than 32 literals
-    fatalError("Cannot handle more than 32 literals")
+    if index < 64 {
+      let extensionCode = index | 0b10000000
+      guard let bytecode = Bytecode(rawValue: extensionCode) else {
+        fatalError("Bytecodes not set up correctly (needed byte \(extensionCode))!")
+      }
+      push(.pushLong)
+      push(bytecode)
+      return
+    }
+    fatalError("Cannot handle more than 64 literals, needed: \(index)")
   }
 
   public func pushSmallInteger(_ number: Int) {
@@ -475,8 +483,7 @@ public class CompilerContext : CustomStringConvertible {
         push(bytecode)
         return
       }
-      // TODO: handle more than 64 arguments+temporaries
-      fatalError("Cannot handle more than 64 temporaries yet, need: \(index)")
+      fatalError("Cannot handle more than 64 temporaries, need: \(index)")
     }
     let index = indexForLiteralVariable(variable)
     if index < 64 {
