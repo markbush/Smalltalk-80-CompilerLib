@@ -23,3 +23,7 @@ The only complication is negative numbers.  A `-` before a digit could be a nega
 ## Parser
 
 The parser is a hand written back-tracking parser.  It has been tested on the [Pharo](https://github.com/pharo-project/pharo) source (about 8,000 classes with over 90,000 methods) and doesn't generate any errors.  It has also now been tested on the original Smalltalk-80 sources file without errors.
+
+## Compiler
+
+The compiler uses the visitor patterns to descend the parse tree of a method and convert it to bytecode.  A pre-run is done to build up the list of temporaries in order to ensure they end up in the same order as the original Smalltalk-80 system.  This was done so that the output could be directly compared with the bytecodes of that system.  A large number of classes have been included as tests to check this works.  There are a small number of differences, though.  These are in some situations where the original compiler adds the same value to the literal list twice.  No attempt has been made to replicate this.  It only happens for a small number of cases (less than 10).
